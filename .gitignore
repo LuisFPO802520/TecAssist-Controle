@@ -1,0 +1,13 @@
+# Dependências
+node_modules/
+
+# Builds
+dist/
+build/
+
+# Variáveis de ambiente
+.env
+.env.local
+
+# Logs
+*.log

@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senha     String
+  tipo      String
+  telefone  String?
+  ativo     Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  servicos Servico[]
+}
+
+model Cliente {
+  id            Int      @id @default(autoincrement())
+  nome          String
+  telefone      String
+  email         String?  @unique
+  endereco      String?
+  cpf           String?  @unique
+  observacoes   String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  agendamentos  Agendamento[]
+  servicos      Servico[]
+  notificacoes  Notificacao[]
+}
+
+model Agendamento {
+  id          Int      @id @default(autoincrement())
+  descricao   String
+  data        DateTime
+  status      String
+  createdAt   DateTime @default(now())
+
+  clienteId Int
+  cliente   Cliente @relation(fields: [clienteId], references: [id])
+
+  servicos Servico[]
+}
+
+model Servico {
+  id           Int      @id @default(autoincrement())
+  codigo       String?   @unique
+  equipamento  String
+  marca        String?
+  modelo       String?
+  problema     String?
+  diagnostico  String?
+  solucao      String?
+  status       String
+  valor        Float?
+  createdAt    DateTime @default(now())
+  finishedAt   DateTime?
+
+  clienteId Int
+  cliente   Cliente @relation(fields: [clienteId], references: [id])
+
+  usuarioId Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  agendamentoId Int?
+  agendamento   Agendamento? @relation(fields: [agendamentoId], references: [id])
+
+  pecas ServicoPeca[]
+}
+
+model Estoque {
+  id            Int      @id @default(autoincrement())
+  nome          String
+  descricao     String
+  quantidade    Int
+  valor         Float
+  fornecedor    String?
+  dataCadastro  DateTime @default(now())
+
+  movimentacoes MovimentacaoEstoque[]
+  servicos ServicoPeca[]
+}
+
+model MovimentacaoEstoque {
+  id         Int      @id @default(autoincrement())
+  tipo       String
+  quantidade Int
+  createdAt  DateTime @default(now())
+
+  estoqueId Int
+  estoque   Estoque @relation(fields: [estoqueId], references: [id])
+}
+
+model Notificacao {
+  id         Int      @id @default(autoincrement())
+  mensagem   String
+  status     String
+  tipo       String
+  createdAt  DateTime @default(now())
+
+  clienteId Int
+  cliente   Cliente @relation(fields: [clienteId], references: [id])
+}
+
+model ServicoPeca {
+  id Int @id @default(autoincrement())
+  quantidade Int
+
+  servicoId Int
+  servico Servico @relation(fields: [servicoId],references: [id])
+
+  estoqueId Int
+  estoque Estoque @relation(fields: [estoqueId],references: [id])
+
+  createdAt DateTime @default(now())
+}
