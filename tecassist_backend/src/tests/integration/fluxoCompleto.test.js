@@ -10,13 +10,16 @@ describe("Fluxo Completo TecAssist", () => {
     let agendamentoId;
     let servicoId;
     let estoqueId;
+    let usuarioId;
 
     beforeAll(async () => {
 
         const senhaHash = await bcrypt.hash("123456", 10);
 
-        await prisma.usuario.upsert({
-            where: {email: "admin@teste.com"},
+        const usuario = await prisma.usuario.upsert({
+            where: {
+                email: "admin@teste.com"
+            },
             update: {},
             create: {
                 nome: "Administrador",
@@ -25,6 +28,8 @@ describe("Fluxo Completo TecAssist", () => {
                 tipo: "ADMIN"
             }
         });
+
+        usuarioId = usuario.id;
 
         const login = await request(app)
             .post("/auth/login")
@@ -35,7 +40,7 @@ describe("Fluxo Completo TecAssist", () => {
 
         token = login.body.token;
     });
-
+    
     afterAll(async () => {
 
         await prisma.movimentacaoEstoque.deleteMany({
@@ -100,13 +105,9 @@ describe("Fluxo Completo TecAssist", () => {
                 marca: "Samsung",
                 modelo: "UN40",
                 problema: "Não liga",
-                usuarioId: 7
+                usuarioId
             });
 
-
-        
-        console.log(converterResponse.status);
-        console.log(converterResponse.body);
 
         expect(converterResponse.status).toBe(201);
 

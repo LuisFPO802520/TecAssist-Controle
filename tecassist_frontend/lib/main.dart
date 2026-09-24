@@ -1,33 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'features/auth/services/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+
+import 'core/network/api_client.dart';
+import 'core/theme/app_theme.dart';
+import 'features/auth/providers/auth_provider.dart';
+import 'features/usuarios/providers/usuario_provider.dart';
+import 'router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: '.env');
 
-  final auth = AuthService();
+  ApiClient.initialize();
 
-  try {
-    await auth.login(email: "admin@teste.com", senha: "123456");
+  final authProvider = AuthProvider();
 
-    debugPrint('Usuário logado');
-  } catch (e) {
-    debugPrint('Erro: $e');
-  }
+  await authProvider.carregarSessao();
 
-  runApp(const MyApp());
+  final router = AppRouter.create(authProvider);
+
+  runApp(TecAssistApp(authProvider: authProvider, router: router));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TecAssistApp extends StatelessWidget {
+  final AuthProvider authProvider;
+  final GoRouter router;
+
+  const TecAssistApp({
+    super.key,
+    required this.authProvider,
+    required this.router,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(body: Center(child: Text("TecAssist"))),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: authProvider),
+
+        ChangeNotifierProvider(create: (_) => UsuarioProvider()),
+      ],
+
+      child: MaterialApp.router(
+        title: 'TecAssist',
+
+        debugShowCheckedModeBanner: false,
+
+        theme: AppTheme.light,
+
+        routerConfig: router,
+      ),
     );
   }
 }

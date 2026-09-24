@@ -133,7 +133,8 @@ flutter run
 
 ## 👨‍🎓 Trabalho de Conclusão de Curso
 
-Projeto desenvolvido como Trabalho de Conclusão de Curso (TCC) para o curso de Sistemas de Informação.
+Projeto desenvolvido como Trabalho de Conclusão de Curso (TCC) para o curso de Engenharia de Software.
 
 **Autor:** Luis Felipe P. de Oliveira
+
 **Projeto:** TecAssist Controle – Sistema de Gestão para Assistências Técnicas

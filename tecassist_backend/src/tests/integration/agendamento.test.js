@@ -67,7 +67,7 @@ describe("Agendamento", () => {
             .set("Authorization", `Bearer ${token}`)
             .send({
                 descricao: "Troca de tela",
-                data: "2026-12-10T14:00:00.000Z",
+                data: "2030-12-20T10:00:00.000Z",
                 clienteId
             });
 
