@@ -55,18 +55,29 @@ async function update(req, res) {
 }
 
 async function remove(req, res) {
+  try {
+    await clienteService.remove(
+      req.params.id
+    );
 
-    try {
-        await clienteService.remove(
-            req.params.id
-        );
+    return res.status(200).json({
+      message:
+        "Cliente excluído com sucesso",
+    });
+    
+  } catch (error) {
+    console.error(
+      "Erro ao excluir cliente:",
+      error
+    );
 
-        res.json({message: "Cliente removido"});
-
-    } catch (error) {
-        res.status(400).json({error: error.message});
-    }
-
+    return res.status(error.statusCode || 500)
+      .json({
+        error:
+          error.message ||
+          "Erro ao excluir cliente",
+      });
+  }
 }
 
 module.exports = {

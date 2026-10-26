@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/models/usuario_model.dart';
 import '../providers/usuario_provider.dart';
+import '../../../core/widgets/app_bottom_navigation.dart';
+import '../../../core/widgets/back_to_home_scope.dart';
+import '../../../core/widgets/blue_pattern_background.dart';
 
 class UsuariosPage extends StatefulWidget {
   const UsuariosPage({super.key});
@@ -106,135 +109,168 @@ class _UsuariosPageState extends State<UsuariosPage> {
           usuario.email.toLowerCase().contains(termo) ||
           usuario.tipo.toLowerCase().contains(termo);
     }).toList();
+    return BackToHomeScope(
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          toolbarHeight: 85,
+          automaticallyImplyLeading: false,
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
 
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            context.go('/dashboard');
-          },
-          icon: const Icon(Icons.arrow_back),
-        ),
-        title: const Text('Usuários'),
-      ),
+          centerTitle: true,
 
-      body: RefreshIndicator(
-        onRefresh: provider.carregarUsuarios,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
+          flexibleSpace: BluePatternBackground(
+            showTopCircles: true,
+            showBottomCircles: false,
+            compactTopCircles: true,
+            child: const SizedBox.expand(),
+          ),
 
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1100),
+          leading: Transform.translate(
+            offset: const Offset(0, 18),
+            child: IconButton(
+              onPressed: () {
+                context.go('/app/home');
+              },
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+            ),
+          ),
 
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final compacto = constraints.maxWidth < 600;
-
-                      final titulo = const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Gerenciamento de usuários',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'Cadastre e gerencie os usuários do sistema.',
-                            style: TextStyle(color: AppColors.textSecondary),
-                          ),
-                        ],
-                      );
-
-                      final botao = ElevatedButton.icon(
-                        onPressed: () {
-                          context.go('/usuarios/novo');
-                        },
-                        icon: const Icon(Icons.person_add_alt_1),
-                        label: const Text('Novo usuário'),
-                      );
-
-                      if (compacto) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [titulo, const SizedBox(height: 16), botao],
-                        );
-                      }
-
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [titulo, botao],
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  TextField(
-                    controller: _pesquisaController,
-                    decoration: const InputDecoration(
-                      hintText: 'Buscar por nome, e-mail ou perfil...',
-                      prefixIcon: Icon(Icons.search),
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _pesquisa = value.trim();
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  if (provider.isLoading)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(40),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  else if (provider.errorMessage != null)
-                    _ErroUsuarios(
-                      mensagem: provider.errorMessage!,
-                      onTentarNovamente: provider.carregarUsuarios,
-                    )
-                  else if (usuarios.isEmpty)
-                    const _ListaVazia()
-                  else
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: usuarios.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final usuario = usuarios[index];
-
-                        return _UsuarioCard(
-                          usuario: usuario,
-                          onEditar: () {
-                            context.go('/usuarios/${usuario.id}/editar');
-                          },
-                          onExcluir: () {
-                            _excluir(usuario);
-                          },
-                        );
-                      },
-                    ),
-                ],
+          title: Transform.translate(
+            offset: const Offset(0, 18),
+            child: const Text(
+              'Usuários',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ),
+
+        body: RefreshIndicator(
+          onRefresh: provider.carregarUsuarios,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
+
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final compacto = constraints.maxWidth < 600;
+
+                        final titulo = const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Gerenciamento de usuários',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              'Cadastre e gerencie os usuários do sistema.',
+                              style: TextStyle(color: AppColors.textSecondary),
+                            ),
+                          ],
+                        );
+
+                        final botao = ElevatedButton.icon(
+                          onPressed: () {
+                            context.go('/usuarios/novo');
+                          },
+                          icon: const Icon(Icons.person_add_alt_1),
+                          label: const Text('Novo usuário'),
+                        );
+
+                        if (compacto) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              titulo,
+                              const SizedBox(height: 16),
+                              botao,
+                            ],
+                          );
+                        }
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [titulo, botao],
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    TextField(
+                      controller: _pesquisaController,
+                      decoration: const InputDecoration(
+                        hintText: 'Buscar por nome, e-mail ou perfil...',
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _pesquisa = value.trim();
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    if (provider.isLoading)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(40),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else if (provider.errorMessage != null)
+                      _ErroUsuarios(
+                        mensagem: provider.errorMessage!,
+                        onTentarNovamente: provider.carregarUsuarios,
+                      )
+                    else if (usuarios.isEmpty)
+                      const _ListaVazia()
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: usuarios.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final usuario = usuarios[index];
+
+                          return _UsuarioCard(
+                            usuario: usuario,
+                            onEditar: () {
+                              context.go('/usuarios/${usuario.id}/editar');
+                            },
+                            onExcluir: () {
+                              _excluir(usuario);
+                            },
+                          );
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        bottomNavigationBar: const AppBottomNavigation(),
       ),
     );
   }

@@ -10,6 +10,8 @@ router.use(authMiddleware);
 
 router.post("/", controller.create);
 
+router.post("/:id/converter", controller.converterEmServico);
+
 router.get("/", controller.findAll);
 
 router.get("/:id", controller.findById);

@@ -85,11 +85,53 @@ async function atualizarStatus(req, res) {
 
 }
 
+async function converterEmServico(
+  req,
+  res
+) {
+  try {
+    const usuarioId =
+      req.usuario.id;
+
+    const servico =
+      await agendamentoService
+        .converterEmServico(
+          req.params.id,
+          usuarioId,
+          req.body
+        );
+
+    return res
+      .status(201)
+      .json({
+        message:
+          "Agendamento convertido em serviço com sucesso",
+        servico,
+      });
+  } catch (error) {
+    console.error(
+      "Erro ao converter agendamento:",
+      error
+    );
+
+    return res
+      .status(
+        error.statusCode || 500
+      )
+      .json({
+        error:
+          error.message ||
+          "Erro ao converter agendamento",
+      });
+  }
+}
+
 module.exports = {
     create,
     findAll,
     findById,
     update,
     remove,
+    converterEmServico,
     atualizarStatus
 };

@@ -13,4 +13,25 @@ class AuthService {
 
     return LoginResponseModel.fromJson(response.data);
   }
+
+  Future<void> cadastrarFuncionario({
+    required String nome,
+    required String email,
+    required String senha,
+    required String codigoCadastro,
+    String? telefone,
+  }) async {
+    await ApiClient.dio.post(
+      '/auth/register',
+      data: {
+        'nome': nome.trim(),
+        'email': email.trim(),
+        'senha': senha,
+        'codigoCadastro': codigoCadastro.trim(),
+
+        if (telefone != null && telefone.trim().isNotEmpty)
+          'telefone': telefone.trim(),
+      },
+    );
+  }
 }

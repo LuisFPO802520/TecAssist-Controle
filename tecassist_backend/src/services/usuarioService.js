@@ -69,15 +69,37 @@ async function findById(id) {
 
 async function update(id, data) {
 
-    const usuario = await usuarioRepository.findById(Number(id));
+  const usuarioId = Number(id);
 
-    if (!usuario) {
-        throw new Error("Usuário não encontrado");
+  const usuario = await usuarioRepository.findById(
+      usuarioId
+    );
+
+  if (!usuario) {
+    throw new Error("Usuário não encontrado");
+  }
+
+  const dadosAtualizados = {...data,};
+ 
+  if (
+    typeof data.senha === "string" &&
+    data.senha.trim() !== ""
+  ) {
+
+    if (data.senha.length < 6) {
+      throw new Error("A senha deve possuir pelo menos 6 caracteres");
     }
 
-    return usuarioRepository.update(Number(id),data);
+    dadosAtualizados.senha = await bcrypt.hash(data.senha, 10);
 
+  } else {
+
+    delete dadosAtualizados.senha;
+  }
+
+  return usuarioRepository.update(usuarioId, dadosAtualizados);
 }
+
 
 async function remove(id) {
 

@@ -1,4 +1,5 @@
 const clienteRepository = require("../repositories/clienteRepository");
+const prisma = require("../config/prisma");
 
 async function create(cliente) {
 
@@ -95,19 +96,44 @@ async function update(id, data) {
 }
 
 async function remove(id) {
+  const clienteId = Number(id);
 
-    const cliente = await clienteRepository.findById(
-        Number(id)
+  const cliente =
+    await prisma.cliente.findUnique({
+      where: {id: clienteId,},
+    });
+
+  if (!cliente) {
+    const error = new Error("Cliente não encontrado");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const servicos =
+    await prisma.servico.count({
+      where: {clienteId,},
+    });
+
+  const agendamentos = await prisma.agendamento.count({
+      where: {clienteId,},
+    });
+
+  const notificacoes = await prisma.notificacao.count({
+      where: {clienteId,},
+    });
+
+  if (servicos > 0 || agendamentos > 0 || notificacoes > 0) {
+    const error = new Error(
+      "Este cliente possui registros vinculados e não pode ser excluído."
     );
 
-    if (!cliente) {
-        throw new Error("Cliente não encontrado");
-    }
+    error.statusCode = 409;
+    throw error;
+  }
 
-    return clienteRepository.remove(
-        Number(id)
-    );
-
+  return clienteRepository.remove(
+    clienteId
+  );
 }
 
 module.exports = {

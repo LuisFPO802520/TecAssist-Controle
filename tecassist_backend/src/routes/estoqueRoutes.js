@@ -6,9 +6,11 @@ const estoqueController = require("../controllers/estoqueController");
 
 const authMiddleware = require("../middlewares/authMiddleware");
 
+const roleMiddleware = require("../middlewares/roleMiddleware");
+
 router.use(authMiddleware);
 
-router.post("/", estoqueController.create);
+router.post("/", roleMiddleware("ADMIN"), estoqueController.create);
 
 router.get("/", estoqueController.findAll);
 

@@ -6,6 +6,8 @@ const servicoController = require("../controllers/servicoController");
 
 const authMiddleware = require("../middlewares/authMiddleware");
 
+const roleMiddleware = require("../middlewares/roleMiddleware");
+
 router.use(authMiddleware);
 
 router.post("/", servicoController.create);
@@ -18,7 +20,7 @@ router.get("/:id", servicoController.findById);
 
 router.put("/:id", servicoController.update);
 
-router.delete("/:id", servicoController.remove);
+router.delete("/:id", roleMiddleware("ADMIN"), servicoController.remove);
 
 router.patch("/:id/status", servicoController.atualizarStatus);
 

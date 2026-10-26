@@ -1,11 +1,17 @@
 const prisma = require("../config/prisma");
 
 async function create(data) {
-
-    return prisma.agendamento.create({
-        data,
-        include: {cliente: true}
-    });
+  return prisma.agendamento.create({
+    data: {
+      descricao: data.descricao,
+      data: new Date(data.data),
+      clienteId: Number(data.clienteId),
+      status: data.status || "AGENDADO",
+    },
+    include: {
+      cliente: true,
+    },
+  });
 }
 
 async function findAll() {
@@ -25,7 +31,7 @@ async function findById(id) {
 
     return prisma.agendamento.findUnique({
         where: { id },
-        include: {cliente: true}
+        include: {cliente: true, servicos: true}
     });
 
 }

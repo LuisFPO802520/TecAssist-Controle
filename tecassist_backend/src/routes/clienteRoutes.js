@@ -6,6 +6,8 @@ const clienteController = require("../controllers/clienteController");
 
 const authMiddleware = require("../middlewares/authMiddleware");
 
+const roleMiddleware = require("../middlewares/roleMiddleware");
+
 router.use(authMiddleware);
 
 router.post("/", clienteController.create);
@@ -16,6 +18,6 @@ router.get("/:id", clienteController.findById);
 
 router.put("/:id", clienteController.update);
 
-router.delete("/:id", clienteController.remove);
+router.delete("/:id", roleMiddleware("ADMIN"), clienteController.remove);
 
 module.exports = router;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/blue_pattern_background.dart';
 
 class EstoquePage extends StatelessWidget {
   const EstoquePage({super.key});
@@ -11,13 +11,35 @@ class EstoquePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            context.go('/dashboard');
-          },
-          icon: const Icon(Icons.arrow_back),
+        toolbarHeight: 85,
+        automaticallyImplyLeading: false,
+
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+
+        flexibleSpace: BluePatternBackground(
+          showTopCircles: true,
+          showBottomCircles: false,
+
+          compactTopCircles: true,
+
+          child: const SizedBox.expand(),
         ),
-        title: const Text('Estoque'),
+
+        title: const SizedBox(
+          height: 60,
+          width: double.infinity,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Text(
+              'Estoque',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
       ),
       body: const Center(
         child: Text(
