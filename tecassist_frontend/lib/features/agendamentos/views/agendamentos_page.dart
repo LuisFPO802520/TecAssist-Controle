@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +7,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../providers/agendamento_provider.dart';
 import 'agendamentos_calendario_view.dart';
 import 'agendamentos_lista_view.dart';
+import '../../../core/widgets/blue_pattern_background.dart';
 
 class AgendamentosPage extends StatefulWidget {
   const AgendamentosPage({super.key});
@@ -17,14 +17,16 @@ class AgendamentosPage extends StatefulWidget {
 }
 
 class _AgendamentosPageState extends State<AgendamentosPage> {
-  final _buscaController = TextEditingController();
+  final TextEditingController _buscaController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AgendamentoProvider>().carregar();
+      if (mounted) {
+        context.read<AgendamentoProvider>().carregar();
+      }
     });
   }
 
@@ -34,15 +36,18 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
     super.dispose();
   }
 
+  void _novoAgendamento() {
+    context.go('/agendamentos/novo');
+  }
+
   Future<void> _confirmarExclusao(
     BuildContext context,
     int agendamentoId,
   ) async {
     final auth = context.read<AuthProvider>();
-
     final tipo = auth.usuario?.tipo.toUpperCase() ?? '';
 
-    final bool podeExcluir = tipo == 'ADMIN' || tipo == 'FUNCIONARIO';
+    final podeExcluir = tipo == 'ADMIN' || tipo == 'FUNCIONARIO';
 
     if (!podeExcluir) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -61,15 +66,15 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
           content: const Text('Deseja realmente excluir este agendamento?'),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, false);
-              },
+              onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, true);
-              },
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white,
+              ),
               child: const Text('Excluir'),
             ),
           ],
@@ -77,24 +82,19 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
       },
     );
 
-    if (confirmar != true || !mounted) {
-      return;
-    }
+    if (confirmar != true || !mounted) return;
 
-    final sucesso = await context.read<AgendamentoProvider>().remover(
-      agendamentoId,
-    );
+    final provider = context.read<AgendamentoProvider>();
+    final sucesso = await provider.remover(agendamentoId);
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           sucesso
               ? 'Agendamento excluído com sucesso.'
-              : context.read<AgendamentoProvider>().errorMessage ??
+              : provider.errorMessage ??
                     'Não foi possível excluir o agendamento.',
         ),
       ),
@@ -104,210 +104,203 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AgendamentoProvider>();
-
-    final auth = context.watch<AuthProvider>();
-    final nomeUsuario = auth.usuario?.nome ?? 'Usuário';
-
-    final hojeFormatado = DateFormat(
-      "dd 'de' MMMM",
-      'pt_BR',
-    ).format(DateTime.now());
+    final largura = MediaQuery.sizeOf(context).width;
+    final compacto = largura < 600;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Agenda'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        toolbarHeight: 85,
+        automaticallyImplyLeading: false,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            tooltip: 'Novo agendamento',
-            onPressed: () {
-              context.go('/agendamentos/novo');
-            },
-            icon: const Icon(Icons.add),
+        flexibleSpace: BluePatternBackground(
+          showTopCircles: true,
+          showBottomCircles: false,
+          compactTopCircles: true,
+          child: const SizedBox.expand(),
+        ),
+        title: const SizedBox(
+          height: 60,
+          width: double.infinity,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Text(
+              'Agenda',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-
-          const SizedBox(width: 8),
-        ],
+        ),
       ),
+
       body: Column(
         children: [
-          Container(
-            width: double.infinity,
-            color: AppColors.primary,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              compacto ? 14 : 16,
+              16,
+              compacto ? 14 : 16,
+              8,
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Bem-vindo, $nomeUsuario',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Controle de agendamentos',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                TextField(
+                  controller: _buscaController,
+                  onChanged: provider.setBusca,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar agendamento...',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: _buscaController.text.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: 'Limpar busca',
+                            onPressed: () {
+                              _buscaController.clear();
+                              provider.setBusca('');
+                              setState(() {});
+                            },
+                            icon: const Icon(Icons.close_rounded),
+                          ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Hoje: $hojeFormatado',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ToggleViewButton(
+                        ativo:
+                            provider.visualizacao ==
+                            AgendamentoVisualizacao.lista,
+                        icon: Icons.view_list_rounded,
+                        label: 'Lista',
+                        onTap: () {
+                          provider.setVisualizacao(
+                            AgendamentoVisualizacao.lista,
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _ToggleViewButton(
+                        ativo:
+                            provider.visualizacao ==
+                            AgendamentoVisualizacao.calendario,
+                        icon: Icons.calendar_month_rounded,
+                        label: 'Calendário',
+                        onTap: () {
+                          provider.setVisualizacao(
+                            AgendamentoVisualizacao.calendario,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final compacto = constraints.maxWidth < 600;
+
+                    final botao = ElevatedButton.icon(
+                      onPressed: _novoAgendamento,
+                      icon: const Icon(Icons.event_available),
+                      label: const Text('Novo agendamento'),
+                    );
+
+                    if (compacto) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [botao],
+                      );
+                    }
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [botao],
+                    );
+                  },
                 ),
               ],
             ),
           ),
+
+          const SizedBox(height: 12),
           Expanded(
             child: RefreshIndicator(
               onRefresh: provider.carregar,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.all(compacto ? 14 : 16),
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _buscaController,
-                          onChanged: provider.setBusca,
-                          decoration: InputDecoration(
-                            hintText: 'Buscar por cliente, descrição ou status',
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: _buscaController.text.isEmpty
-                                ? null
-                                : IconButton(
-                                    onPressed: () {
-                                      _buscaController.clear();
-                                      provider.setBusca('');
-                                      setState(() {});
-                                    },
-                                    icon: const Icon(Icons.close),
-                                  ),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _ToggleViewButton(
-                                ativo:
-                                    provider.visualizacao ==
-                                    AgendamentoVisualizacao.lista,
-                                icon: Icons.view_list_rounded,
-                                label: 'Lista',
-                                onTap: () {
-                                  provider.setVisualizacao(
-                                    AgendamentoVisualizacao.lista,
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _ToggleViewButton(
-                                ativo:
-                                    provider.visualizacao ==
-                                    AgendamentoVisualizacao.calendario,
-                                icon: Icons.calendar_month_rounded,
-                                label: 'Calendário',
-                                onTap: () {
-                                  provider.setVisualizacao(
-                                    AgendamentoVisualizacao.calendario,
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   if (provider.isLoading && provider.agendamentos.isEmpty)
                     const Padding(
-                      padding: EdgeInsets.only(top: 70),
+                      padding: EdgeInsets.all(45),
                       child: Center(child: CircularProgressIndicator()),
                     )
                   else if (provider.errorMessage != null &&
                       provider.agendamentos.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            size: 48,
-                            color: AppColors.error,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            provider.errorMessage!,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 12),
-                          ElevatedButton(
-                            onPressed: provider.carregar,
-                            child: const Text('Tentar novamente'),
-                          ),
-                        ],
-                      ),
+                    _EstadoAgendamentos(
+                      icone: Icons.error_outline_rounded,
+                      mensagem: provider.errorMessage!,
+                      textoBotao: 'Tentar novamente',
+                      onPressed: provider.carregar,
                     )
-                  else
-                    provider.visualizacao == AgendamentoVisualizacao.lista
-                        ? AgendamentosListaView(
-                            agendamentos: provider.agendamentosFiltrados,
+                  else if (provider.agendamentosFiltrados.isEmpty)
+                    _EstadoAgendamentos(
+                      icone: Icons.calendar_month_outlined,
+                      mensagem: 'Nenhum agendamento encontrado.',
+                      textoBotao: 'Atualizar',
+                      onPressed: provider.carregar,
+                    )
+                  else ...[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        '${provider.agendamentosFiltrados.length} '
+                        '${provider.agendamentosFiltrados.length == 1 ? 'agendamento encontrado' : 'agendamentos encontrados'}',
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
 
-                            onEditar: (agendamentoId) {
-                              context.go('/agendamentos/$agendamentoId/editar');
-                            },
-
-                            onConverter: (agendamentoId) {
-                              context.go(
-                                '/agendamentos/$agendamentoId/converter',
-                              );
-                            },
-
-                            onExcluir: (agendamentoId) {
-                              _confirmarExclusao(context, agendamentoId);
-                            },
-                          )
-                        : AgendamentosCalendarioView(
-                            provider: provider,
-
-                            onEditar: (agendamentoId) {
-                              context.go('/agendamentos/$agendamentoId/editar');
-                            },
-
-                            onConverter: (agendamentoId) {
-                              context.go(
-                                '/agendamentos/$agendamentoId/converter',
-                              );
-                            },
-
-                            onExcluir: (agendamentoId) {
-                              _confirmarExclusao(context, agendamentoId);
-                            },
-                          ),
+                    if (provider.visualizacao == AgendamentoVisualizacao.lista)
+                      AgendamentosListaView(
+                        agendamentos: provider.agendamentosFiltrados,
+                        onEditar: (id) {
+                          context.go('/agendamentos/$id/editar');
+                        },
+                        onConverter: (id) {
+                          context.go('/agendamentos/$id/converter');
+                        },
+                        onExcluir: (id) {
+                          _confirmarExclusao(context, id);
+                        },
+                      )
+                    else
+                      AgendamentosCalendarioView(
+                        provider: provider,
+                        onEditar: (id) {
+                          context.go('/agendamentos/$id/editar');
+                        },
+                        onConverter: (id) {
+                          context.go('/agendamentos/$id/converter');
+                        },
+                        onExcluir: (id) {
+                          _confirmarExclusao(context, id);
+                        },
+                      ),
+                  ],
                 ],
               ),
             ),
@@ -333,32 +326,49 @@ class _ToggleViewButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-        decoration: BoxDecoration(
-          color: ativo ? AppColors.primary : AppColors.background,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: ativo ? AppColors.primary : Colors.grey.shade300,
+    return ElevatedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: ativo ? AppColors.primary : Colors.white,
+        foregroundColor: ativo ? Colors.white : AppColors.textSecondary,
+        elevation: 0,
+        side: BorderSide(color: ativo ? AppColors.primary : AppColors.border),
+      ),
+    );
+  }
+}
+
+class _EstadoAgendamentos extends StatelessWidget {
+  final IconData icone;
+  final String mensagem;
+  final String textoBotao;
+  final Future<void> Function() onPressed;
+
+  const _EstadoAgendamentos({
+    required this.icone,
+    required this.mensagem,
+    required this.textoBotao,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 45),
+      child: Column(
+        children: [
+          Icon(icone, size: 48, color: AppColors.textSecondary),
+          const SizedBox(height: 14),
+          Text(
+            mensagem,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.textSecondary),
           ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: ativo ? Colors.white : AppColors.textPrimary),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: ativo ? Colors.white : AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
+          const SizedBox(height: 16),
+          OutlinedButton(onPressed: () => onPressed(), child: Text(textoBotao)),
+        ],
       ),
     );
   }

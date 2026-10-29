@@ -103,13 +103,24 @@ async function atualizarStatus(id, status) {
 }
 
 async function converterAgendamento(agendamentoId, dadosServico) {
+    if (!dadosServico.usuarioId) {
+        throw new Error("Usuário responsável é obrigatório");
+    }
 
     const agendamento = await prisma.agendamento.findUnique({
-        where: {id: Number(agendamentoId)}
+        where: { id: Number(agendamentoId) }
     });
 
     if (!agendamento) {
         throw new Error("Agendamento não encontrado");
+    }
+
+    const usuario = await prisma.usuario.findUnique({
+        where: { id: Number(dadosServico.usuarioId) }
+    });
+
+    if (!usuario) {
+        throw new Error("Usuário responsável não encontrado");
     }
 
     const servico = await servicoRepository.create({
@@ -122,19 +133,16 @@ async function converterAgendamento(agendamentoId, dadosServico) {
     const codigo = gerarCodigo(servico.id);
 
     await prisma.servico.update({
-        where: {id: servico.id},
-        data: {codigo}
+        where: { id: servico.id },
+        data: { codigo }
     });
 
     await prisma.agendamento.update({
-        where: {id: agendamento.id},
-        data: {status: "CONVERTIDO"}
+        where: { id: agendamento.id },
+        data: { status: "CONVERTIDO" }
     });
 
-    return servicoRepository.findById(
-        servico.id
-    );
-    
+    return servicoRepository.findById(servico.id);
 }
 
 async function adicionarPeca(servicoId, dados) {

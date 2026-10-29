@@ -4,10 +4,10 @@ const servicoService =
 async function create(req, res) {
 
     try {
-        const servico = await servicoService.create(
-            req.body
-        );
-
+        const servico = await servicoService.create({
+        ...req.body,
+        usuarioId: req.usuario.id,
+        });
         res.status(201).json(servico);
 
     } catch (error) {
@@ -92,17 +92,20 @@ async function atualizarStatus(req, res) {
 }
 
 async function converterAgendamento(req, res) {
-
+    
     try {
         const servico = await servicoService.converterAgendamento(
             req.params.agendamentoId,
-            req.body
+            {
+                ...req.body,
+                usuarioId: req.usuario.id
+            }
         );
 
         res.status(201).json(servico);
-
+        
     } catch (error) {
-        res.status(400).json({error: error.message});
+        res.status(400).json({ error: error.message });
     }
 
 }

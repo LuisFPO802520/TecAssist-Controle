@@ -39,10 +39,20 @@ async function findById(id) {
 async function update(id, data) {
 
     return prisma.agendamento.update({
-        where: { id },
-        data
+        where: {
+            id: Number(id)
+        },
+        data: {
+            ...data,
+            ...(data.data !== undefined
+                ? { data: new Date(data.data) }
+                : {})
+        },
+        include: {
+            cliente: true
+        }
     });
-
+    
 }
 
 async function remove(id) {

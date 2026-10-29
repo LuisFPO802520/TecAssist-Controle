@@ -13,6 +13,8 @@ import '../features/usuarios/views/codigo_cadastro_page.dart';
 import '../features/auth/views/cadastro_page.dart';
 import '../features/agendamentos/views/agendamentos_form_page.dart';
 import '../features/agendamentos/views/converter_agendamento_page.dart';
+import '../features/servicos/views/servico_detalhes_page.dart';
+import '../features/servicos/views/servico_form_page.dart';
 import 'app_shell.dart';
 
 class AppRouter {
@@ -129,6 +131,39 @@ class AppRouter {
         GoRoute(
           path: '/servicos',
           redirect: (context, state) => '/app/servicos',
+        ),
+
+        GoRoute(
+          path: '/servicos/novo',
+          builder: (context, state) {
+            return const ServicoFormPage();
+          },
+        ),
+
+        GoRoute(
+          path: '/servicos/:id/editar',
+          builder: (context, state) {
+            final id = int.tryParse(state.pathParameters['id'] ?? '');
+
+            if (id == null) {
+              return const AppShell(initialIndex: 3);
+            }
+
+            return ServicoFormPage(servicoId: id);
+          },
+        ),
+
+        GoRoute(
+          path: '/servicos/:id',
+          builder: (context, state) {
+            final id = int.tryParse(state.pathParameters['id'] ?? '');
+
+            if (id == null) {
+              return const AppShell(initialIndex: 3);
+            }
+
+            return ServicoDetalhesPage(servicoId: id);
+          },
         ),
 
         GoRoute(path: '/estoque', redirect: (context, state) => '/app/estoque'),

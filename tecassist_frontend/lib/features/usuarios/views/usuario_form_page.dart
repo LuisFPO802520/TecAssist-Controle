@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../providers/usuario_provider.dart';
 import '../../../core/widgets/app_bottom_navigation.dart';
 import '../../../core/widgets/back_to_home_scope.dart';
+import '../../../core/widgets/blue_pattern_background.dart';
 
 class UsuarioFormPage extends StatefulWidget {
   final int? usuarioId;
@@ -164,13 +165,39 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
         backgroundColor: AppColors.background,
 
         appBar: AppBar(
-          leading: IconButton(
-            onPressed: () {
-              context.go('/usuarios');
-            },
-            icon: const Icon(Icons.arrow_back),
+          toolbarHeight: 85,
+          automaticallyImplyLeading: false,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+
+          flexibleSpace: BluePatternBackground(
+            showTopCircles: true,
+            showBottomCircles: false,
+            compactTopCircles: true,
+            child: const SizedBox.expand(),
           ),
-          title: Text(widget.editando ? 'Editar usuário' : 'Novo usuário'),
+
+          leading: Transform.translate(
+            offset: const Offset(0, 18),
+            child: IconButton(
+              onPressed: () {
+                context.go('/usuarios');
+              },
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+            ),
+          ),
+
+          title: Transform.translate(
+            offset: const Offset(0, 18),
+            child: Text(
+              widget.editando ? 'Editar usuário' : 'Novo usuário',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
 
         body: _carregandoInicial

@@ -8,6 +8,7 @@ import '../../../core/widgets/back_to_home_scope.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/cliente_model.dart';
 import '../providers/cliente_provider.dart';
+import '../../../core/widgets/blue_pattern_background.dart';
 
 class ClienteDetalhesPage extends StatefulWidget {
   final int clienteId;
@@ -123,36 +124,66 @@ class _ClienteDetalhesPageState extends State<ClienteDetalhesPage> {
         backgroundColor: AppColors.background,
 
         appBar: AppBar(
-          title: const Text('Cliente'),
+          toolbarHeight: 85,
+          automaticallyImplyLeading: false,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
 
-          leading: IconButton(
-            onPressed: () {
-              context.go('/app/clientes');
-            },
-            icon: const Icon(Icons.arrow_back),
+          flexibleSpace: BluePatternBackground(
+            showTopCircles: true,
+            showBottomCircles: false,
+            compactTopCircles: true,
+            child: const SizedBox.expand(),
+          ),
+
+          leading: Transform.translate(
+            offset: const Offset(0, 18),
+            child: IconButton(
+              onPressed: () {
+                context.go('/app/clientes');
+              },
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+            ),
+          ),
+
+          title: Transform.translate(
+            offset: const Offset(0, 18),
+            child: const Text(
+              'Cliente',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
 
           actions: [
             if (_cliente != null)
-              IconButton(
-                tooltip: 'Editar',
-                onPressed: () {
-                  context.go('/clientes/${widget.clienteId}/editar');
-                },
-                icon: const Icon(Icons.edit_outlined),
+              Transform.translate(
+                offset: const Offset(0, 18),
+                child: IconButton(
+                  tooltip: 'Editar',
+                  onPressed: () {
+                    context.go('/clientes/${widget.clienteId}/editar');
+                  },
+                  icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                ),
               ),
 
             if (_cliente != null && auth.isAdmin)
-              IconButton(
-                tooltip: 'Excluir',
-                onPressed: _excluir,
-                icon: const Icon(Icons.delete_outline),
+              Transform.translate(
+                offset: const Offset(0, 18),
+                child: IconButton(
+                  tooltip: 'Excluir',
+                  onPressed: _excluir,
+                  icon: const Icon(Icons.delete_outline, color: Colors.white),
+                ),
               ),
 
             const SizedBox(width: 6),
           ],
         ),
-
         bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
 
         body: _carregando

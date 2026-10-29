@@ -173,30 +173,24 @@ class _ClientesPageState extends State<ClientesPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
+                  TextField(
+                    controller: _pesquisaController,
+                    decoration: const InputDecoration(
+                      hintText: 'Buscar cliente...',
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _pesquisa = value.trim();
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final compacto = constraints.maxWidth < 600;
-
-                      final titulo = const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Gerenciamento de clientes',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-
-                          SizedBox(height: 5),
-
-                          Text(
-                            'Cadastre e acompanhe os clientes da sua empresa.',
-                            style: TextStyle(color: AppColors.textSecondary),
-                          ),
-                        ],
-                      );
 
                       final botao = ElevatedButton.icon(
                         onPressed: () {
@@ -209,35 +203,18 @@ class _ClientesPageState extends State<ClientesPage> {
                       if (compacto) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [titulo, const SizedBox(height: 16), botao],
+                          children: [botao],
                         );
                       }
 
                       return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [titulo, botao],
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [botao],
                       );
                     },
                   ),
 
-                  const SizedBox(height: 24),
-
-                  TextField(
-                    controller: _pesquisaController,
-
-                    decoration: const InputDecoration(
-                      hintText: 'Buscar cliente...',
-                      prefixIcon: Icon(Icons.search),
-                    ),
-
-                    onChanged: (value) {
-                      setState(() {
-                        _pesquisa = value.trim();
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
                   Row(
                     children: [

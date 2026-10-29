@@ -11,6 +11,8 @@ import 'features/usuarios/providers/usuario_provider.dart';
 import 'features/clientes/providers/cliente_provider.dart';
 import 'features/agendamentos/providers/agendamento_provider.dart';
 import 'features/agendamentos/services/agendamento_service.dart';
+import 'features/servicos/providers/servico_provider.dart';
+import 'features/servicos/services/servico_service.dart';
 import 'router/app_router.dart';
 
 Future<void> main() async {
@@ -51,6 +53,9 @@ class TecAssistApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ClienteProvider()),
         ChangeNotifierProvider(
           create: (_) => AgendamentoProvider(AgendamentoService()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ServicoProvider(ServicoService()),
         ),
       ],
 

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_bottom_navigation.dart';
 import '../../../core/widgets/back_to_home_scope.dart';
+import '../../../core/widgets/blue_pattern_background.dart';
 
 import '../../clientes/models/cliente_model.dart';
 import '../../clientes/providers/cliente_provider.dart';
@@ -224,15 +225,38 @@ class _AgendamentoFormPageState extends State<AgendamentoFormPage> {
         backgroundColor: AppColors.background,
 
         appBar: AppBar(
-          title: Text(
-            widget.editando ? 'Editar agendamento' : 'Novo agendamento',
+          toolbarHeight: 85,
+          automaticallyImplyLeading: false,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+
+          flexibleSpace: BluePatternBackground(
+            showTopCircles: true,
+            showBottomCircles: false,
+            compactTopCircles: true,
+            child: const SizedBox.expand(),
           ),
 
-          leading: IconButton(
-            onPressed: () {
-              context.go('/app/agenda');
-            },
-            icon: const Icon(Icons.arrow_back),
+          leading: Transform.translate(
+            offset: const Offset(0, 18),
+            child: IconButton(
+              onPressed: () {
+                context.go('/app/agenda');
+              },
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+            ),
+          ),
+
+          title: Transform.translate(
+            offset: const Offset(0, 18),
+            child: Text(
+              widget.editando ? 'Editar agendamento' : 'Novo agendamento',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ),
 
