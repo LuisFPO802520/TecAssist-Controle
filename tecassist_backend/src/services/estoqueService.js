@@ -13,10 +13,7 @@ async function findAll() {
 }
 
 async function findById(id) {
-
-    const item =await repository.findById(
-            Number(id)
-        );
+    const item = await repository.findById(Number(id));
 
     if (!item) {
         throw new Error("Item não encontrado");
@@ -25,6 +22,7 @@ async function findById(id) {
     return item;
 
 }
+
 
 async function update(id, data) {
 
@@ -36,11 +34,13 @@ async function update(id, data) {
 }
 
 async function remove(id) {
+    const numeroId = Number(id);
 
-    return repository.remove(
-        Number(id)
-    );
+    if (!Number.isInteger(numeroId) || numeroId <= 0) {
+        throw new Error("ID do item inválido");
+    }
 
+    return repository.remove(numeroId);
 }
 
 module.exports = {

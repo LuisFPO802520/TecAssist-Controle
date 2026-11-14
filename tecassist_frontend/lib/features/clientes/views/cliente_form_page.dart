@@ -161,7 +161,11 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
         ),
       );
 
-      context.go('/app/clientes');
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/app/clientes');
+      }
 
       return;
     }
@@ -200,7 +204,11 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
             offset: const Offset(0, 18),
             child: IconButton(
               onPressed: () {
-                context.go('/app/clientes');
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/app/clientes');
+                }
               },
               icon: const Icon(Icons.arrow_back, color: Colors.white),
             ),
@@ -426,7 +434,11 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                               onPressed: provider.isSaving
                                   ? null
                                   : () {
-                                      context.go('/app/clientes');
+                                      if (context.canPop()) {
+                                        context.pop();
+                                      } else {
+                                        context.go('/app/clientes');
+                                      }
                                     },
 
                               child: const Text('Cancelar'),

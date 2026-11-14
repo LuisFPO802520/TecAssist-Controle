@@ -13,6 +13,8 @@ import 'features/agendamentos/providers/agendamento_provider.dart';
 import 'features/agendamentos/services/agendamento_service.dart';
 import 'features/servicos/providers/servico_provider.dart';
 import 'features/servicos/services/servico_service.dart';
+import 'features/estoque/providers/estoque_provider.dart';
+import 'features/estoque/services/estoque_service.dart';
 import 'router/app_router.dart';
 
 Future<void> main() async {
@@ -56,6 +58,9 @@ class TecAssistApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ServicoProvider(ServicoService()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => EstoqueProvider(EstoqueService()),
         ),
       ],
 

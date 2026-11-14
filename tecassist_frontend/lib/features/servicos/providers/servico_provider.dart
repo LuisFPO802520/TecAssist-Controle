@@ -2,28 +2,41 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../models/servico_model.dart';
+import '../models/notificacao_model.dart';
 import '../services/servico_service.dart';
+import '../services/notificacao_service.dart';
 
 class ServicoProvider extends ChangeNotifier {
   final ServicoService _service;
+  final NotificacaoService _notificacaoService = NotificacaoService();
 
   ServicoProvider(this._service);
 
   List<ServicoModel> _servicos = [];
 
   bool _isLoading = false;
+  bool _jaCarregou = false;
   bool _isSaving = false;
 
   String? _errorMessage;
+  String? _notificacaoError;
+  bool _isLoadingNotificacoes = false;
+  List<NotificacaoModel> _notificacoes = [];
 
   List<ServicoModel> get servicos => List.unmodifiable(_servicos);
 
   bool get isLoading => _isLoading;
+  bool get jaCarregou => _jaCarregou;
   bool get isSaving => _isSaving;
 
   String? get errorMessage => _errorMessage;
+  String? get notificacaoError => _notificacaoError;
+  bool get isLoadingNotificacoes => _isLoadingNotificacoes;
+  List<NotificacaoModel> get notificacoes => List.unmodifiable(_notificacoes);
 
   Future<void> carregar() async {
+    if (_isLoading) return;
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -39,6 +52,7 @@ class ServicoProvider extends ChangeNotifier {
 
           return dataB.compareTo(dataA);
         });
+      _jaCarregou = true;
     } on DioException catch (error) {
       _errorMessage = _mensagemErro(error);
     } catch (_) {
@@ -150,6 +164,66 @@ class ServicoProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> adicionarPeca({
+    required int servicoId,
+    required int estoqueId,
+    required int quantidade,
+  }) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _service.adicionarPeca(
+        servicoId: servicoId,
+        estoqueId: estoqueId,
+        quantidade: quantidade,
+      );
+
+      await carregar();
+
+      return true;
+    } on DioException catch (error) {
+      _errorMessage = _mensagemErro(error);
+      return false;
+    } catch (_) {
+      _errorMessage = 'Não foi possível adicionar a peça ao serviço.';
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> removerPeca({
+    required int servicoId,
+    required int servicoPecaId,
+  }) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _service.removerPeca(
+        servicoId: servicoId,
+        servicoPecaId: servicoPecaId,
+      );
+
+      await carregar();
+
+      return true;
+    } on DioException catch (error) {
+      _errorMessage = _mensagemErro(error);
+      return false;
+    } catch (_) {
+      _errorMessage = 'Não foi possível remover a peça do serviço.';
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> atualizarStatus(ServicoModel servico, String novoStatus) {
     return atualizar(
       id: servico.id,
@@ -163,6 +237,84 @@ class ServicoProvider extends ChangeNotifier {
       valor: servico.valor,
       status: novoStatus,
     );
+  }
+
+  Future<void> carregarNotificacoes(int servicoId) async {
+    _isLoadingNotificacoes = true;
+    _notificacaoError = null;
+    notifyListeners();
+
+    try {
+      _notificacoes = await _notificacaoService.listarPorServico(servicoId);
+    } on DioException catch (error) {
+      _notificacaoError = _mensagemErro(error);
+    } catch (_) {
+      _notificacaoError = 'Não foi possível carregar o histórico de mensagens.';
+    } finally {
+      _isLoadingNotificacoes = false;
+      notifyListeners();
+    }
+  }
+
+  Future<PreparacaoWhatsApp?> prepararWhatsApp({
+    required int servicoId,
+    required String mensagem,
+  }) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final resultado = await _notificacaoService.prepararWhatsApp(
+        servicoId: servicoId,
+        mensagem: mensagem,
+      );
+
+      _notificacoes = [
+        resultado.notificacao,
+        ..._notificacoes.where((item) => item.id != resultado.notificacao.id),
+      ];
+
+      return resultado;
+    } on DioException catch (error) {
+      _errorMessage = _mensagemErro(error);
+      return null;
+    } catch (error) {
+      _errorMessage = error is FormatException
+          ? error.message.toString()
+          : 'Não foi possível preparar a mensagem.';
+      return null;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> marcarNotificacaoComoEnviada(int notificacaoId) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final atualizada = await _notificacaoService.marcarComoEnviada(
+        notificacaoId,
+      );
+
+      _notificacoes = _notificacoes.map((item) {
+        return item.id == atualizada.id ? atualizada : item;
+      }).toList();
+
+      return true;
+    } on DioException catch (error) {
+      _errorMessage = _mensagemErro(error);
+      return false;
+    } catch (_) {
+      _errorMessage = 'Não foi possível atualizar o status da mensagem.';
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
   }
 
   Future<bool> excluir(int id) async {

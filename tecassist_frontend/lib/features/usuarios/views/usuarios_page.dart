@@ -132,7 +132,11 @@ class _UsuariosPageState extends State<UsuariosPage> {
             offset: const Offset(0, 18),
             child: IconButton(
               onPressed: () {
-                context.go('/app/home');
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/app/home');
+                }
               },
               icon: const Icon(Icons.arrow_back, color: Colors.white),
             ),
@@ -188,7 +192,7 @@ class _UsuariosPageState extends State<UsuariosPage> {
 
                         final botao = ElevatedButton.icon(
                           onPressed: () {
-                            context.go('/usuarios/novo');
+                            context.push('/usuarios/novo');
                           },
                           icon: const Icon(Icons.person_add_alt_1),
                           label: const Text('Novo usuário'),
@@ -256,7 +260,7 @@ class _UsuariosPageState extends State<UsuariosPage> {
                           return _UsuarioCard(
                             usuario: usuario,
                             onEditar: () {
-                              context.go('/usuarios/${usuario.id}/editar');
+                              context.push('/usuarios/${usuario.id}/editar');
                             },
                             onExcluir: () {
                               _excluir(usuario);

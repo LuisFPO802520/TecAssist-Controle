@@ -4,6 +4,7 @@ class UsuarioModel {
   final String email;
   final String tipo;
   final String? telefone;
+  final String? fotoPerfil;
   final bool? ativo;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -14,6 +15,7 @@ class UsuarioModel {
     required this.email,
     required this.tipo,
     this.telefone,
+    this.fotoPerfil,
     this.ativo,
     this.createdAt,
     this.updatedAt,
@@ -25,7 +27,8 @@ class UsuarioModel {
       nome: json['nome'] ?? '',
       email: json['email'] ?? '',
       tipo: json['tipo'] ?? '',
-      telefone: json['telefone'],
+      telefone: json['telefone']?.toString(),
+      fotoPerfil: json['fotoPerfil']?.toString(),
       ativo: json['ativo'],
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'])
@@ -43,6 +46,7 @@ class UsuarioModel {
       'email': email,
       'tipo': tipo,
       'telefone': telefone,
+      'fotoPerfil': fotoPerfil,
       'ativo': ativo,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),

@@ -11,15 +11,22 @@ const {
 async function login(email, senha) {
 
     const usuario = await prisma.usuario.findUnique({
-        where: {email}
+        where: { email }
     });
 
     if (!usuario) {
         throw new Error("Usuário não encontrado");
     }
 
+    if (!usuario.ativo) {
+        throw new Error(
+            "Esta conta foi desativada. Entre em contato com o administrador."
+        );
+    }
+
     const senhaValida = await bcrypt.compare(
-        senha, usuario.senha
+        senha,
+        usuario.senha
     );
 
     if (!senhaValida) {
@@ -42,11 +49,15 @@ async function login(email, senha) {
             id: usuario.id,
             nome: usuario.nome,
             email: usuario.email,
-            tipo: usuario.tipo
+            tipo: usuario.tipo,
+            telefone: usuario.telefone,
+            fotoPerfil: usuario.fotoPerfil,
+            ativo: usuario.ativo,
+            createdAt: usuario.createdAt,
+            updatedAt: usuario.updatedAt
         },
         token
     };
-
 }
 
 async function cadastrarFuncionario(data) {
@@ -124,6 +135,7 @@ async function cadastrarFuncionario(data) {
           email: true,
           tipo: true,
           telefone: true,
+          fotoPerfil: true,
           ativo: true,
           createdAt: true,
         },

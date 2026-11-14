@@ -194,7 +194,7 @@ class _ClientesPageState extends State<ClientesPage> {
 
                       final botao = ElevatedButton.icon(
                         onPressed: () {
-                          context.go('/clientes/novo');
+                          context.push('/clientes/novo');
                         },
                         icon: const Icon(Icons.person_add_alt_1),
                         label: const Text('Novo cliente'),
@@ -286,11 +286,11 @@ class _ClientesPageState extends State<ClientesPage> {
                       podeExcluir: podeExcluir,
 
                       onAbrir: (cliente) {
-                        context.go('/clientes/${cliente.id}');
+                        context.push('/clientes/${cliente.id}');
                       },
 
                       onEditar: (cliente) {
-                        context.go('/clientes/${cliente.id}/editar');
+                        context.push('/clientes/${cliente.id}/editar');
                       },
 
                       onExcluir: _excluirCliente,
@@ -302,11 +302,11 @@ class _ClientesPageState extends State<ClientesPage> {
                       podeExcluir: podeExcluir,
 
                       onAbrir: (cliente) {
-                        context.go('/clientes/${cliente.id}');
+                        context.push('/clientes/${cliente.id}');
                       },
 
                       onEditar: (cliente) {
-                        context.go('/clientes/${cliente.id}/editar');
+                        context.push('/clientes/${cliente.id}/editar');
                       },
 
                       onExcluir: _excluirCliente,

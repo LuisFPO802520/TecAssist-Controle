@@ -44,6 +44,8 @@ class UsuarioService {
     required String tipo,
     String? telefone,
     String? senha,
+    String? fotoBase64,
+    String? fotoMimeType,
   }) async {
     final Map<String, dynamic> dados = {
       'nome': nome,
@@ -54,6 +56,11 @@ class UsuarioService {
 
     if (senha != null && senha.isNotEmpty) {
       dados['senha'] = senha;
+    }
+
+    if (fotoBase64 != null && fotoBase64.isNotEmpty) {
+      dados['fotoBase64'] = fotoBase64;
+      dados['fotoMimeType'] = fotoMimeType ?? 'image/jpeg';
     }
 
     final response = await ApiClient.dio.put('/usuarios/$id', data: dados);

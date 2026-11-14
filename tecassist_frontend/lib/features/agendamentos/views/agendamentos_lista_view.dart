@@ -40,7 +40,8 @@ class AgendamentosListaView extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
         ),
         child: const Column(
           children: [
@@ -60,173 +61,172 @@ class AgendamentosListaView extends StatelessWidget {
       children: agendamentos.map((agendamento) {
         final statusColor = _statusColor(agendamento.status);
 
-        return Container(
+        return Card(
           margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
+          color: Colors.white,
+          elevation: 1,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: AppColors.border),
           ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 6,
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(18),
-                      bottomLeft: Radius.circular(18),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                agendamento.clienteNome,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+          child: InkWell(
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(width: 6, color: statusColor),
+
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  agendamento.clienteNome,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                switch (value) {
-                                  case 'editar':
-                                    onEditar?.call(agendamento.id);
-                                    break;
 
-                                  case 'converter':
-                                    onConverter?.call(agendamento.id);
-                                    break;
+                              PopupMenuButton<String>(
+                                onSelected: (value) {
+                                  switch (value) {
+                                    case 'editar':
+                                      onEditar?.call(agendamento.id);
+                                      break;
 
-                                  case 'excluir':
-                                    onExcluir?.call(agendamento.id);
-                                    break;
-                                }
-                              },
+                                    case 'converter':
+                                      onConverter?.call(agendamento.id);
+                                      break;
 
-                              itemBuilder: (context) {
-                                return [
-                                  const PopupMenuItem(
-                                    value: 'editar',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.edit_outlined),
-                                        SizedBox(width: 10),
-                                        Text('Editar'),
-                                      ],
-                                    ),
-                                  ),
-
-                                  if (agendamento.status.toUpperCase() ==
-                                      'AGENDADO')
+                                    case 'excluir':
+                                      onExcluir?.call(agendamento.id);
+                                      break;
+                                  }
+                                },
+                                itemBuilder: (context) {
+                                  return [
                                     const PopupMenuItem(
-                                      value: 'converter',
+                                      value: 'editar',
                                       child: Row(
                                         children: [
-                                          Icon(Icons.construction_outlined),
+                                          Icon(Icons.edit_outlined),
                                           SizedBox(width: 10),
-                                          Text('Converter em serviço'),
+                                          Text('Editar'),
                                         ],
                                       ),
                                     ),
 
-                                  const PopupMenuDivider(),
-
-                                  const PopupMenuItem(
-                                    value: 'excluir',
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.delete_outline,
-                                          color: AppColors.error,
+                                    if (agendamento.status.toUpperCase() ==
+                                        'AGENDADO')
+                                      const PopupMenuItem(
+                                        value: 'converter',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.construction_outlined),
+                                            SizedBox(width: 10),
+                                            Text('Converter em serviço'),
+                                          ],
                                         ),
-                                        SizedBox(width: 10),
-                                        Text(
-                                          'Excluir',
-                                          style: TextStyle(
+                                      ),
+
+                                    const PopupMenuDivider(),
+
+                                    const PopupMenuItem(
+                                      value: 'excluir',
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.delete_outline,
                                             color: AppColors.error,
                                           ),
-                                        ),
-                                      ],
+                                          SizedBox(width: 10),
+                                          Text(
+                                            'Excluir',
+                                            style: TextStyle(
+                                              color: AppColors.error,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ];
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          agendamento.descricao,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 14,
-                          runSpacing: 8,
-                          children: [
-                            _InfoText(
-                              icon: Icons.calendar_today,
-                              text: DateFormat(
-                                'dd/MM/yyyy',
-                              ).format(agendamento.data),
-                            ),
-                            _InfoText(
-                              icon: Icons.access_time,
-                              text: DateFormat(
-                                'HH:mm',
-                              ).format(agendamento.data),
-                            ),
-                            if (agendamento.clienteTelefone != null)
-                              _InfoText(
-                                icon: Icons.phone_outlined,
-                                text: agendamento.clienteTelefone!,
+                                  ];
+                                },
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
+                            ],
                           ),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Text(
-                            agendamento.status,
-                            style: TextStyle(
-                              color: statusColor,
-                              fontWeight: FontWeight.w600,
+
+                          const SizedBox(height: 4),
+
+                          Text(
+                            agendamento.descricao,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ),
-                      ],
+
+                          const SizedBox(height: 12),
+
+                          Wrap(
+                            spacing: 14,
+                            runSpacing: 8,
+                            children: [
+                              _InfoText(
+                                icon: Icons.calendar_today,
+                                text: DateFormat(
+                                  'dd/MM/yyyy',
+                                ).format(agendamento.data),
+                              ),
+
+                              _InfoText(
+                                icon: Icons.access_time,
+                                text: DateFormat(
+                                  'HH:mm',
+                                ).format(agendamento.data),
+                              ),
+
+                              if (agendamento.clienteTelefone != null)
+                                _InfoText(
+                                  icon: Icons.phone_outlined,
+                                  text: agendamento.clienteTelefone!,
+                                ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Text(
+                              agendamento.status,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

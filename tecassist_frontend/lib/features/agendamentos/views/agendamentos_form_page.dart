@@ -201,7 +201,11 @@ class _AgendamentoFormPageState extends State<AgendamentoFormPage> {
         ),
       );
 
-      context.go('/app/agenda');
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/app/agenda');
+      }
 
       return;
     }
@@ -242,7 +246,11 @@ class _AgendamentoFormPageState extends State<AgendamentoFormPage> {
             offset: const Offset(0, 18),
             child: IconButton(
               onPressed: () {
-                context.go('/app/agenda');
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/app/agenda');
+                }
               },
               icon: const Icon(Icons.arrow_back, color: Colors.white),
             ),
@@ -404,22 +412,25 @@ class _AgendamentoFormPageState extends State<AgendamentoFormPage> {
                                     value: 'AGENDADO',
                                     child: Text('Agendado'),
                                   ),
-
+                                  DropdownMenuItem(
+                                    value: 'CONVERTIDO',
+                                    child: Text('Convertido'),
+                                  ),
                                   DropdownMenuItem(
                                     value: 'CANCELADO',
                                     child: Text('Cancelado'),
                                   ),
                                 ],
 
-                                onChanged: (value) {
-                                  if (value == null) {
-                                    return;
-                                  }
+                                onChanged: _status == 'CONVERTIDO'
+                                    ? null
+                                    : (value) {
+                                        if (value == null) return;
 
-                                  setState(() {
-                                    _status = value;
-                                  });
-                                },
+                                        setState(() {
+                                          _status = value;
+                                        });
+                                      },
                               ),
                             ],
 
@@ -452,7 +463,11 @@ class _AgendamentoFormPageState extends State<AgendamentoFormPage> {
 
                             OutlinedButton(
                               onPressed: () {
-                                context.go('/app/agenda');
+                                if (context.canPop()) {
+                                  context.pop();
+                                } else {
+                                  context.go('/app/agenda');
+                                }
                               },
                               child: const Text('Cancelar'),
                             ),

@@ -17,9 +17,13 @@ async function create(req, res) {
 
 async function findAll(req, res) {
 
-    const usuarios = await usuarioService.findAll();
+    try {
+        const usuarios = await usuarioService.findAll();
+        return res.json(usuarios);
 
-    res.json(usuarios);
+    } catch (error) {
+        return res.status(500).json({ error: "Erro ao listar usuários." });
+    }
 
 }
 
@@ -54,6 +58,33 @@ async function update(req, res) {
 
 }
 
+async function findProfile(req, res) {
+    try {
+        const usuario = await usuarioService.findById(req.usuario.id);
+        return res.json(usuario);
+
+    } catch (error) {
+        return res.status(error.statusCode || 404).json({
+            error: error.message,
+        });
+    }
+}
+
+async function updateProfile(req, res) {
+    try {
+        const usuario = await usuarioService.updateProfile(
+            req.usuario.id,
+            req.body
+        );
+
+        return res.json(usuario);
+    } catch (error) {
+        return res.status(error.statusCode || 400).json({
+            error: error.message,
+        });
+    }
+}
+
 async function remove(req, res) {
 
     try {
@@ -74,5 +105,7 @@ module.exports = {
     findAll,
     findById,
     update,
-    remove
+    findProfile,
+    updateProfile,
+    remove,
 };

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/blue_pattern_background.dart';
+import '../../../core/widgets/user_avatar.dart';
 
 class DashboardHeader extends StatelessWidget {
   final String nome;
+  final String? fotoPerfil;
   final VoidCallback onPerfil;
   final VoidCallback onSac;
   final VoidCallback onConfiguracoes;
@@ -12,6 +14,7 @@ class DashboardHeader extends StatelessWidget {
   const DashboardHeader({
     super.key,
     required this.nome,
+    this.fotoPerfil,
     required this.onPerfil,
     required this.onSac,
     required this.onConfiguracoes,
@@ -37,22 +40,11 @@ class DashboardHeader extends StatelessWidget {
                 InkWell(
                   onTap: onPerfil,
                   borderRadius: BorderRadius.circular(45),
-                  child: Container(
-                    width: 78,
-                    height: 78,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: const Color(0xFFE0E0E0),
-                      border: Border.all(
-                        color: const Color(0xFF999999),
-                        width: 2,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.person_outline,
-                      size: 60,
-                      color: Color(0xFF9B9B9B),
-                    ),
+                  child: UserAvatar(
+                    size: 78,
+                    fotoPerfil: fotoPerfil,
+                    iconSize: 60,
+                    borderWidth: 2,
                   ),
                 ),
 

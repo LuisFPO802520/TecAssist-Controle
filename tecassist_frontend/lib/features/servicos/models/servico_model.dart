@@ -1,3 +1,5 @@
+import 'servico_peca_model.dart';
+
 const servicoStatusDisponiveis = <String>[
   'ABERTO',
   'EM_ANDAMENTO',
@@ -13,6 +15,12 @@ String servicoStatusLabel(String status) {
       return 'Aberto';
     case 'EM_ANDAMENTO':
       return 'Em andamento';
+    case 'EM_ANALISE':
+      return 'Em análise';
+    case 'EM_MANUTENCAO':
+      return 'Em manutenção';
+    case 'PRONTO':
+      return 'Pronto para retirada';
     case 'AGUARDANDO_PECA':
       return 'Aguardando peça';
     case 'CONCLUIDO':
@@ -80,7 +88,10 @@ class ServicoModel {
   final String usuarioNome;
 
   final int? agendamentoId;
-  final int quantidadePecas;
+
+  final List<ServicoPecaModel> pecas;
+
+  int get quantidadePecas => pecas.length;
 
   const ServicoModel({
     required this.id,
@@ -101,7 +112,7 @@ class ServicoModel {
     required this.usuarioId,
     required this.usuarioNome,
     this.agendamentoId,
-    this.quantidadePecas = 0,
+    this.pecas = const [],
   });
 
   factory ServicoModel.fromJson(Map<String, dynamic> json) {
@@ -120,7 +131,17 @@ class ServicoModel {
         (usuario?['id'] as num?)?.toInt() ??
         0;
 
-    final pecas = json['pecas'];
+    final pecasJson = json['pecas'];
+
+    final List<ServicoPecaModel> pecas = pecasJson is List
+        ? pecasJson
+              .whereType<Map>()
+              .map(
+                (item) =>
+                    ServicoPecaModel.fromJson(Map<String, dynamic>.from(item)),
+              )
+              .toList()
+        : <ServicoPecaModel>[];
 
     return ServicoModel(
       id: id,
@@ -142,19 +163,25 @@ class ServicoModel {
       createdAt: _dataServico(json['createdAt']),
       finishedAt: _dataServico(json['finishedAt']),
 
-      clienteId: clienteId,
+      clienteId:
+          (json['clienteId'] as num?)?.toInt() ??
+          (cliente?['id'] as num?)?.toInt() ??
+          0,
 
       clienteNome: cliente?['nome']?.toString() ?? 'Cliente não informado',
 
       clienteTelefone: cliente?['telefone']?.toString(),
 
-      usuarioId: usuarioId,
+      usuarioId:
+          (json['usuarioId'] as num?)?.toInt() ??
+          (usuario?['id'] as num?)?.toInt() ??
+          0,
 
       usuarioNome: usuario?['nome']?.toString() ?? 'Responsável não informado',
 
       agendamentoId: (json['agendamentoId'] as num?)?.toInt(),
 
-      quantidadePecas: pecas is List ? pecas.length : 0,
+      pecas: pecas,
     );
   }
 }

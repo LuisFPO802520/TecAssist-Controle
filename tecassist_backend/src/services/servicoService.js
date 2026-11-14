@@ -2,6 +2,12 @@ const prisma = require("../config/prisma");
 const servicoRepository = require("../repositories/servicoRepository");
 const gerarCodigo = require("../utils/createCodeServico");
 
+function erroHttp(mensagem, statusCode) {
+    const error = new Error(mensagem);
+    error.statusCode = statusCode;
+    return error;
+}
+
 async function create(data) {
 
     if (!data.equipamento) {
@@ -145,54 +151,216 @@ async function converterAgendamento(agendamentoId, dadosServico) {
     return servicoRepository.findById(servico.id);
 }
 
-async function adicionarPeca(servicoId, dados) {
+async function adicionarPeca(
+    servicoId,
+    estoqueId,
+    quantidade
+) {
+    const idServico = Number(servicoId);
+    const idEstoque = Number(estoqueId);
+    const qtd = Number(quantidade);
 
-    const servico = await prisma.servico.findUnique({
-        where: {id: Number(servicoId)}
-    });
-
-    if (!servico) {
-        throw new Error("Serviço não encontrado");
+    if (
+        !Number.isInteger(idServico) ||
+        idServico <= 0 ||
+        !Number.isInteger(idEstoque) ||
+        idEstoque <= 0 ||
+        !Number.isInteger(qtd) ||
+        qtd <= 0
+    ) {
+        throw erroHttp(
+            "Serviço, peça e quantidade precisam ser válidos.",
+            400
+        );
     }
 
-    const estoque = await prisma.estoque.findUnique({
-        where: {id: Number(dados.estoqueId)}
-    });
+    return prisma.$transaction(async (tx) => {
+        const servico = await tx.servico.findUnique({
+            where: {
+                id: idServico,
+            },
+            select: {
+                id: true,
+                status: true,
+            },
+        });
 
-    if (!estoque) {
-        throw new Error("Peça não encontrada");
+        if (!servico) {
+            throw erroHttp(
+                "Serviço não encontrado.",
+                404
+            );
+        }
+
+        const status = servico.status.toUpperCase();
+
+        if (
+            status === "CANCELADO" ||
+            status === "ENTREGUE" ||
+            status === "FINALIZADO"
+        ) {
+            throw erroHttp(
+                "Não é possível adicionar peças a um serviço encerrado.",
+                409
+            );
+        }
+
+        const estoque = await tx.estoque.findUnique({
+            where: {
+                id: idEstoque,
+            },
+            select: {
+                id: true,
+                quantidade: true,
+            },
+        });
+
+        if (!estoque) {
+            throw erroHttp(
+                "Peça não encontrada no estoque.",
+                404
+            );
+        }
+
+        const atualizacao = await tx.estoque.updateMany({
+            where: {
+                id: idEstoque,
+                quantidade: {
+                    gte: qtd,
+                },
+            },
+            data: {
+                quantidade: {
+                    decrement: qtd,
+                },
+            },
+        });
+
+        if (atualizacao.count !== 1) {
+            throw erroHttp(
+                "Quantidade insuficiente no estoque.",
+                409
+            );
+        }
+
+        const vinculo = await tx.servicoPeca.create({
+            data: {
+                servicoId: idServico,
+                estoqueId: idEstoque,
+                quantidade: qtd,
+            },
+            include: {
+                estoque: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        descricao: true,
+                        valor: true,
+                        quantidade: true,
+                    },
+                },
+            },
+        });
+
+        await tx.movimentacaoEstoque.create({
+            data: {
+                tipo: "SAIDA",
+                quantidade: qtd,
+                estoqueId: idEstoque,
+            },
+        });
+
+        return vinculo;
+    });
+}
+
+async function removerPeca(
+    servicoId,
+    servicoPecaId
+) {
+    const idServico = Number(servicoId);
+    const idVinculo = Number(servicoPecaId);
+
+    if (
+        !Number.isInteger(idServico) ||
+        idServico <= 0 ||
+        !Number.isInteger(idVinculo) ||
+        idVinculo <= 0
+    ) {
+        throw erroHttp(
+            "Serviço ou vínculo de peça inválido.",
+            400
+        );
     }
 
-    if (estoque.quantidade < dados.quantidade) {
-        throw new Error("Estoque insuficiente");
-    }
+    return prisma.$transaction(async (tx) => {
+        const vinculo = await tx.servicoPeca.findFirst({
+            where: {
+                id: idVinculo,
+                servicoId: idServico,
+            },
+            include: {
+                servico: {
+                    select: {
+                        id: true,
+                        status: true,
+                    },
+                },
+            },
+        });
 
-    const servicoPeca = await prisma.servicoPeca.create({
-        data: {
-            servicoId: Number(servicoId),
-            estoqueId: Number(dados.estoqueId),
-            quantidade: Number(dados.quantidade)
+        if (!vinculo) {
+            throw erroHttp(
+                "Peça não encontrada neste serviço.",
+                404
+            );
         }
-    });
 
-    await prisma.estoque.update({
-        where: {id: estoque.id},
-        data: {
-            quantidade:
-                estoque.quantidade - dados.quantidade
+        const status = vinculo.servico.status.toUpperCase();
+
+        if (
+            status === "CANCELADO" ||
+            status === "ENTREGUE" ||
+            status === "FINALIZADO"
+        ) {
+            throw erroHttp(
+                "Não é possível alterar peças de um serviço encerrado.",
+                409
+            );
         }
+
+        await tx.estoque.update({
+            where: {
+                id: vinculo.estoqueId,
+            },
+            data: {
+                quantidade: {
+                    increment: vinculo.quantidade,
+                },
+            },
+        });
+
+        await tx.movimentacaoEstoque.create({
+            data: {
+                tipo: "ENTRADA",
+                quantidade: vinculo.quantidade,
+                estoqueId: vinculo.estoqueId,
+            },
+        });
+
+        await tx.servicoPeca.delete({
+            where: {
+                id: vinculo.id,
+            },
+        });
+
+        return {
+            message: "Peça devolvida ao estoque.",
+            servicoId: idServico,
+            estoqueId: vinculo.estoqueId,
+            quantidade: vinculo.quantidade,
+        };
     });
-
-    await prisma.movimentacaoEstoque.create({
-        data: {
-            tipo: "SAIDA",
-            quantidade: Number(dados.quantidade),
-            estoqueId: estoque.id
-        }
-    });
-
-    return servicoPeca;
-
 }
 
 module.exports = {
@@ -203,5 +371,6 @@ module.exports = {
     remove,
     atualizarStatus,
     converterAgendamento,
-    adicionarPeca
+    adicionarPeca,
+    removerPeca
 };

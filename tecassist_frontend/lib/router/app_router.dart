@@ -11,10 +11,13 @@ import '../features/clientes/views/cliente_detalhes_page.dart';
 import '../features/clientes/views/cliente_form_page.dart';
 import '../features/usuarios/views/codigo_cadastro_page.dart';
 import '../features/auth/views/cadastro_page.dart';
+import '../features/auth/views/perfil_page.dart';
 import '../features/agendamentos/views/agendamentos_form_page.dart';
 import '../features/agendamentos/views/converter_agendamento_page.dart';
 import '../features/servicos/views/servico_detalhes_page.dart';
 import '../features/servicos/views/servico_form_page.dart';
+import '../features/estoque/views/estoque_form_page.dart';
+import '../features/estoque/views/estoque_detalhes_page.dart';
 import 'app_shell.dart';
 
 class AppRouter {
@@ -26,7 +29,6 @@ class AppRouter {
 
       redirect: (context, state) {
         final autenticado = authProvider.isAuthenticated;
-
         final location = state.matchedLocation;
 
         final rotaPublica =
@@ -40,8 +42,13 @@ class AppRouter {
           return '/app/home';
         }
 
-        if (location.startsWith('/usuarios') && !authProvider.isAdmin) {
-          return '/app/home';
+        final rotaSomenteAdmin =
+            location.startsWith('/usuarios') ||
+            location == '/estoque/novo' ||
+            RegExp(r'^/estoque/\d+/editar$').hasMatch(location);
+
+        if (rotaSomenteAdmin && !authProvider.isAdmin) {
+          return '/app/estoque';
         }
 
         return null;
@@ -66,6 +73,13 @@ class AppRouter {
           path: '/cadastro',
           builder: (context, state) {
             return const CadastroPage();
+          },
+        ),
+
+        GoRoute(
+          path: '/perfil',
+          builder: (context, state) {
+            return const PerfilPage();
           },
         ),
 
@@ -169,6 +183,39 @@ class AppRouter {
         GoRoute(path: '/estoque', redirect: (context, state) => '/app/estoque'),
 
         GoRoute(
+          path: '/estoque/novo',
+          builder: (context, state) {
+            return const EstoqueFormPage();
+          },
+        ),
+
+        GoRoute(
+          path: '/estoque/:id/editar',
+          builder: (context, state) {
+            final id = int.tryParse(state.pathParameters['id'] ?? '');
+
+            if (id == null) {
+              return const AppShell(initialIndex: 4);
+            }
+
+            return EstoqueFormPage(estoqueId: id);
+          },
+        ),
+
+        GoRoute(
+          path: '/estoque/:id',
+          builder: (context, state) {
+            final id = int.tryParse(state.pathParameters['id'] ?? '');
+
+            if (id == null) {
+              return const AppShell(initialIndex: 4);
+            }
+
+            return EstoqueDetalhesPage(estoqueId: id);
+          },
+        ),
+
+        GoRoute(
           path: '/usuarios',
           builder: (context, state) {
             return const UsuariosPage();
@@ -258,6 +305,7 @@ class AppRouter {
         return 1;
 
       case 'agenda':
+      case 'agendamentos':
         return 2;
 
       case 'servicos':

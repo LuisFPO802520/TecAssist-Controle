@@ -101,7 +101,11 @@ class _ClienteDetalhesPageState extends State<ClienteDetalhesPage> {
     }
 
     if (sucesso) {
-      context.go('/app/clientes');
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/app/clientes');
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cliente excluído com sucesso.')),
@@ -141,7 +145,11 @@ class _ClienteDetalhesPageState extends State<ClienteDetalhesPage> {
             offset: const Offset(0, 18),
             child: IconButton(
               onPressed: () {
-                context.go('/app/clientes');
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/app/clientes');
+                }
               },
               icon: const Icon(Icons.arrow_back, color: Colors.white),
             ),
@@ -165,7 +173,7 @@ class _ClienteDetalhesPageState extends State<ClienteDetalhesPage> {
                 child: IconButton(
                   tooltip: 'Editar',
                   onPressed: () {
-                    context.go('/clientes/${widget.clienteId}/editar');
+                    context.push('/clientes/${widget.clienteId}/editar');
                   },
                   icon: const Icon(Icons.edit_outlined, color: Colors.white),
                 ),

@@ -14,6 +14,7 @@ class AgendamentoProvider extends ChangeNotifier {
   final List<AgendamentoModel> _agendamentos = [];
 
   bool _isLoading = false;
+  bool _jaCarregou = false;
   String? _errorMessage;
 
   String _busca = '';
@@ -24,6 +25,7 @@ class AgendamentoProvider extends ChangeNotifier {
   List<AgendamentoModel> get agendamentos => List.unmodifiable(_agendamentos);
 
   bool get isLoading => _isLoading;
+  bool get jaCarregou => _jaCarregou;
   String? get errorMessage => _errorMessage;
 
   bool _isSaving = false;
@@ -34,6 +36,8 @@ class AgendamentoProvider extends ChangeNotifier {
   AgendamentoVisualizacao get visualizacao => _visualizacao;
 
   Future<void> carregar() async {
+    if (_isLoading) return;
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -44,6 +48,7 @@ class AgendamentoProvider extends ChangeNotifier {
       _agendamentos
         ..clear()
         ..addAll(lista);
+      _jaCarregou = true;
     } on DioException catch (error) {
       final data = error.response?.data;
 

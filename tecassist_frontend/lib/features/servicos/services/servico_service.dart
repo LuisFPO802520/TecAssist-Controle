@@ -80,6 +80,24 @@ class ServicoService {
     );
   }
 
+  Future<void> adicionarPeca({
+    required int servicoId,
+    required int estoqueId,
+    required int quantidade,
+  }) async {
+    await ApiClient.dio.post(
+      '/servicos/$servicoId/pecas',
+      data: {'estoqueId': estoqueId, 'quantidade': quantidade},
+    );
+  }
+
+  Future<void> removerPeca({
+    required int servicoId,
+    required int servicoPecaId,
+  }) async {
+    await ApiClient.dio.delete('/servicos/$servicoId/pecas/$servicoPecaId');
+  }
+
   Future<void> atualizar({
     required int id,
     required int clienteId,

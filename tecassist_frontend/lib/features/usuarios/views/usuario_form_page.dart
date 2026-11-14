@@ -1,13 +1,18 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../providers/usuario_provider.dart';
 import '../../../core/widgets/app_bottom_navigation.dart';
 import '../../../core/widgets/back_to_home_scope.dart';
 import '../../../core/widgets/blue_pattern_background.dart';
+import '../../../core/widgets/user_avatar.dart';
 
 class UsuarioFormPage extends StatefulWidget {
   final int? usuarioId;
@@ -35,6 +40,11 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
 
   bool _mostrarSenha = false;
   bool _carregandoInicial = false;
+
+  final _imagePicker = ImagePicker();
+  Uint8List? _fotoBytes;
+  XFile? _fotoSelecionada;
+  String? _fotoPerfilAtual;
 
   @override
   void initState() {
@@ -93,9 +103,61 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
 
     _tipo = usuario.tipo;
 
+    _fotoPerfilAtual = usuario.fotoPerfil;
+
     setState(() {
       _carregandoInicial = false;
     });
+  }
+
+  Future<void> _selecionarFoto() async {
+    try {
+      final arquivo = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 1200,
+        maxHeight: 1200,
+      );
+
+      if (arquivo == null) return;
+
+      final bytes = await arquivo.readAsBytes();
+
+      if (bytes.isEmpty || bytes.length > 4 * 1024 * 1024) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Escolha uma imagem válida de até 4 MB.'),
+          ),
+        );
+        return;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _fotoBytes = bytes;
+        _fotoSelecionada = arquivo;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível selecionar a foto.')),
+      );
+    }
+  }
+
+  String _tipoMimeFoto() {
+    final mime = _fotoSelecionada?.mimeType?.toLowerCase();
+
+    if (mime == 'image/jpeg' || mime == 'image/png' || mime == 'image/webp') {
+      return mime!;
+    }
+
+    final nome = _fotoSelecionada?.name.toLowerCase() ?? '';
+    if (nome.endsWith('.png')) return 'image/png';
+    if (nome.endsWith('.webp')) return 'image/webp';
+
+    return 'image/jpeg';
   }
 
   Future<void> _salvar() async {
@@ -117,6 +179,8 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
         tipo: _tipo,
         telefone: telefone,
         senha: _senhaController.text,
+        fotoBase64: _fotoBytes != null ? base64Encode(_fotoBytes!) : null,
+        fotoMimeType: _fotoBytes != null ? _tipoMimeFoto() : null,
       );
     } else {
       sucesso = await provider.criarUsuario(
@@ -143,7 +207,11 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
         ),
       );
 
-      context.go('/usuarios');
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/usuarios');
+      }
 
       return;
     }
@@ -182,7 +250,11 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
             offset: const Offset(0, 18),
             child: IconButton(
               onPressed: () {
-                context.go('/usuarios');
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/usuarios');
+                }
               },
               icon: const Icon(Icons.arrow_back, color: Colors.white),
             ),
@@ -242,6 +314,41 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
                             ),
 
                             const SizedBox(height: 24),
+
+                            if (widget.editando) ...[
+                              Center(
+                                child: Column(
+                                  children: [
+                                    UserAvatar(
+                                      size: 104,
+                                      fotoPerfil: _fotoPerfilAtual,
+                                      previewBytes: _fotoBytes,
+                                      iconSize: 74,
+                                      borderWidth: 2,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    OutlinedButton.icon(
+                                      onPressed: _selecionarFoto,
+                                      icon: const Icon(
+                                        Icons.photo_camera_outlined,
+                                      ),
+                                      label: const Text(
+                                        'Alterar foto de perfil',
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'JPG, PNG ou WebP • até 4 MB',
+                                      style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
 
                             TextFormField(
                               controller: _nomeController,
@@ -414,7 +521,11 @@ class _UsuarioFormPageState extends State<UsuarioFormPage> {
                               onPressed: provider.isSaving
                                   ? null
                                   : () {
-                                      context.go('/usuarios');
+                                      if (context.canPop()) {
+                                        context.pop();
+                                      } else {
+                                        context.go('/usuarios');
+                                      }
                                     },
                               child: const Text('Cancelar'),
                             ),

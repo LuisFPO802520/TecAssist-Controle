@@ -37,7 +37,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
   }
 
   void _novoAgendamento() {
-    context.go('/agendamentos/novo');
+    context.push('/agendamentos/novo');
   }
 
   Future<void> _confirmarExclusao(
@@ -278,10 +278,10 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                       AgendamentosListaView(
                         agendamentos: provider.agendamentosFiltrados,
                         onEditar: (id) {
-                          context.go('/agendamentos/$id/editar');
+                          context.push('/agendamentos/$id/editar');
                         },
                         onConverter: (id) {
-                          context.go('/agendamentos/$id/converter');
+                          context.push('/agendamentos/$id/converter');
                         },
                         onExcluir: (id) {
                           _confirmarExclusao(context, id);
@@ -291,10 +291,10 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                       AgendamentosCalendarioView(
                         provider: provider,
                         onEditar: (id) {
-                          context.go('/agendamentos/$id/editar');
+                          context.push('/agendamentos/$id/editar');
                         },
                         onConverter: (id) {
-                          context.go('/agendamentos/$id/converter');
+                          context.push('/agendamentos/$id/converter');
                         },
                         onExcluir: (id) {
                           _confirmarExclusao(context, id);

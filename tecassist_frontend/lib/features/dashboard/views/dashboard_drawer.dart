@@ -3,10 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/user_avatar.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class DashboardDrawer extends StatelessWidget {
-  const DashboardDrawer({super.key});
+  final ValueChanged<int> onNavigatePage;
+
+  const DashboardDrawer({super.key, required this.onNavigatePage});
 
   Future<void> _logout(BuildContext context) async {
     final auth = context.read<AuthProvider>();
@@ -18,10 +21,14 @@ class DashboardDrawer extends StatelessWidget {
     }
   }
 
-  void _navegar(BuildContext context, String rota) {
-    Navigator.pop(context);
+  void _navegarPagina(BuildContext context, int index) {
+    Navigator.of(context).pop();
+    onNavigatePage(index);
+  }
 
-    context.go(rota);
+  void _navegarRota(BuildContext context, String rota) {
+    Navigator.pop(context);
+    context.push(rota);
   }
 
   @override
@@ -45,14 +52,10 @@ class DashboardDrawer extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Row(
                 children: [
-                  const CircleAvatar(
-                    radius: 42,
-                    backgroundColor: Color(0xFFE0E0E0),
-                    child: Icon(
-                      Icons.person_outline,
-                      size: 65,
-                      color: Color(0xFF999999),
-                    ),
+                  UserAvatar(
+                    size: 84,
+                    fotoPerfil: usuario?.fotoPerfil,
+                    iconSize: 65,
                   ),
 
                   const SizedBox(width: 25),
@@ -87,11 +90,20 @@ class DashboardDrawer extends StatelessWidget {
 
                         const SizedBox(height: 25),
 
-                        const Text(
-                          'Editar informações',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 14,
+                        InkWell(
+                          onTap: () {
+                            _navegarRota(context, '/perfil');
+                          },
+                          borderRadius: BorderRadius.circular(6),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              'Editar informações',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -114,7 +126,7 @@ class DashboardDrawer extends StatelessWidget {
                         icone: Icons.manage_accounts_outlined,
                         titulo: 'Gerenciar usuários',
                         onTap: () {
-                          _navegar(context, '/usuarios');
+                          _navegarRota(context, '/usuarios');
                         },
                       ),
 
@@ -123,7 +135,7 @@ class DashboardDrawer extends StatelessWidget {
                         icone: Icons.lock_clock,
                         titulo: 'Código de cadastro',
                         onTap: () {
-                          _navegar(context, '/codigo-cadastro');
+                          _navegarRota(context, '/codigo-cadastro');
                         },
                       ),
 
@@ -131,7 +143,7 @@ class DashboardDrawer extends StatelessWidget {
                       icone: Icons.people_outline,
                       titulo: 'Clientes',
                       onTap: () {
-                        _navegar(context, '/app/clientes');
+                        _navegarPagina(context, 1);
                       },
                     ),
 
@@ -139,7 +151,7 @@ class DashboardDrawer extends StatelessWidget {
                       icone: Icons.calendar_month_outlined,
                       titulo: 'Agenda',
                       onTap: () {
-                        _navegar(context, '/app/agendamentos');
+                        _navegarPagina(context, 2);
                       },
                     ),
 
@@ -147,7 +159,7 @@ class DashboardDrawer extends StatelessWidget {
                       icone: Icons.construction_outlined,
                       titulo: 'Serviços',
                       onTap: () {
-                        _navegar(context, '/app/servicos');
+                        _navegarPagina(context, 3);
                       },
                     ),
 
@@ -155,7 +167,7 @@ class DashboardDrawer extends StatelessWidget {
                       icone: Icons.inventory_2_outlined,
                       titulo: 'Estoque',
                       onTap: () {
-                        _navegar(context, '/app/estoque');
+                        _navegarPagina(context, 4);
                       },
                     ),
 
@@ -163,7 +175,7 @@ class DashboardDrawer extends StatelessWidget {
                       icone: Icons.settings_outlined,
                       titulo: 'Configurações',
                       onTap: () {
-                        _navegar(context, '/configuracoes');
+                        _navegarRota(context, '/configuracoes');
                       },
                     ),
 
@@ -171,7 +183,7 @@ class DashboardDrawer extends StatelessWidget {
                       icone: Icons.headset_mic_outlined,
                       titulo: 'SAC',
                       onTap: () {
-                        _navegar(context, '/sac');
+                        _navegarRota(context, '/sac');
                       },
                     ),
                   ],

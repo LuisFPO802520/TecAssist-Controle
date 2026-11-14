@@ -1,5 +1,4 @@
-const estoqueService =
-    require("../services/estoqueService");
+const estoqueService = require("../services/estoqueService");
 
 async function create(req, res) {
 
@@ -17,19 +16,22 @@ async function create(req, res) {
 }
 
 async function findAll(req, res) {
+    try {
+        const itens = await estoqueService.findAll();
 
-    const itens = await estoqueService.findAll();
-
-    res.json(itens);
-
+        res.json(itens);
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        });
+    }
 }
 
 async function findById(req, res) {
 
     try {
-        const item =await estoqueService.findById(
-            req.params.id
-        );
+       const item = await estoqueService.findById(req.params.id);
+
 
         res.json(item);
 
@@ -62,7 +64,7 @@ async function remove(req, res) {
             req.params.id
         );
 
-        res.json({message: "Item removido"});
+        res.json({message: "Item desativado com sucesso"});
 
     } catch (error) {
         res.status(400).json({error: error.message});

@@ -14,6 +14,7 @@ model Usuario {
   senha     String
   tipo      String
   telefone  String?
+  fotoPerfil String?
   ativo     Boolean  @default(true)
 
   createdAt DateTime @default(now())
@@ -76,6 +77,7 @@ model Servico {
   agendamento   Agendamento? @relation(fields: [agendamentoId], references: [id])
 
   pecas ServicoPeca[]
+  notificacoes Notificacao[]
 }
 
 model Estoque {
@@ -86,6 +88,7 @@ model Estoque {
   valor         Float
   fornecedor    String?
   dataCadastro  DateTime @default(now())
+  ativo         Boolean  @default(true)
 
   movimentacoes MovimentacaoEstoque[]
   servicos ServicoPeca[]
@@ -110,6 +113,11 @@ model Notificacao {
 
   clienteId Int
   cliente   Cliente @relation(fields: [clienteId], references: [id])
+  
+  servicoId Int?
+  servico   Servico? @relation(fields: [servicoId], references: [id], onDelete: SetNull)
+
+  @@index([servicoId])
 }
 
 model ServicoPeca {

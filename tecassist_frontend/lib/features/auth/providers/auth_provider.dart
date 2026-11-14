@@ -9,23 +9,18 @@ class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
 
   UsuarioModel? _usuario;
-
   String? _token;
-
   bool _isLoading = false;
-
+  bool _isSavingProfile = false;
   String? _errorMessage;
 
   UsuarioModel? get usuario => _usuario;
-
   String? get token => _token;
-
   bool get isLoading => _isLoading;
-
+  bool get isSavingProfile => _isSavingProfile;
   String? get errorMessage => _errorMessage;
 
   bool get isAuthenticated => _token != null && _token!.isNotEmpty;
-
   bool get isAdmin => _usuario?.tipo == 'ADMIN';
 
   Future<bool> login({required String email, required String senha}) async {
@@ -44,31 +39,22 @@ class AuthProvider extends ChangeNotifier {
       _token = resultado.token;
 
       await StorageService.saveToken(resultado.token);
-
       await StorageService.saveUsuario(resultado.usuario.toJson());
 
       _isLoading = false;
-
       notifyListeners();
 
       return true;
     } on DioException catch (error) {
       _isLoading = false;
-
-      if (error.response?.data is Map<String, dynamic>) {
-        _errorMessage =
-            error.response?.data['error'] ?? 'Erro ao realizar login';
-      } else {
-        _errorMessage = 'Não foi possível conectar ao servidor';
-      }
+      _errorMessage = _mensagemErro(error, 'Erro ao realizar login.');
 
       notifyListeners();
 
       return false;
-    } catch (error) {
+    } catch (_) {
       _isLoading = false;
-
-      _errorMessage = 'Erro inesperado ao realizar login';
+      _errorMessage = 'Erro inesperado ao realizar login.';
 
       notifyListeners();
 
@@ -99,16 +85,10 @@ class AuthProvider extends ChangeNotifier {
 
       return true;
     } on DioException catch (error) {
-      final data = error.response?.data;
-
-      if (data is Map && data['error'] != null) {
-        _errorMessage = data['error'].toString();
-      } else if (data is Map && data['message'] != null) {
-        _errorMessage = data['message'].toString();
-      } else {
-        _errorMessage = 'Não foi possível realizar o cadastro.';
-      }
-
+      _errorMessage = _mensagemErro(
+        error,
+        'Não foi possível realizar o cadastro.',
+      );
       return false;
     } catch (_) {
       _errorMessage = 'Erro inesperado ao realizar cadastro.';
@@ -123,7 +103,6 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> carregarSessao() async {
     final tokenSalvo = await StorageService.getToken();
-
     final usuarioSalvo = await StorageService.getUsuario();
 
     if (tokenSalvo == null || usuarioSalvo == null) {
@@ -131,10 +110,74 @@ class AuthProvider extends ChangeNotifier {
     }
 
     _token = tokenSalvo;
-
     _usuario = UsuarioModel.fromJson(usuarioSalvo);
 
     notifyListeners();
+  }
+
+  Future<bool> recarregarPerfil() async {
+    _errorMessage = null;
+
+    try {
+      final usuarioAtualizado = await _authService.buscarPerfil();
+      _usuario = usuarioAtualizado;
+      await StorageService.saveUsuario(usuarioAtualizado.toJson());
+      notifyListeners();
+      return true;
+    } on DioException catch (error) {
+      _errorMessage = _mensagemErro(
+        error,
+        'Não foi possível atualizar os dados do perfil.',
+      );
+      notifyListeners();
+      return false;
+    } catch (_) {
+      _errorMessage = 'Erro ao carregar as informações do perfil.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> atualizarPerfil({
+    required String nome,
+    required String email,
+    String? telefone,
+    String? senhaAtual,
+    String? novaSenha,
+    String? fotoBase64,
+    String? fotoMimeType,
+  }) async {
+    _isSavingProfile = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final usuarioAtualizado = await _authService.atualizarPerfil(
+        nome: nome,
+        email: email,
+        telefone: telefone,
+        senhaAtual: senhaAtual,
+        novaSenha: novaSenha,
+        fotoBase64: fotoBase64,
+        fotoMimeType: fotoMimeType,
+      );
+
+      _usuario = usuarioAtualizado;
+      await StorageService.saveUsuario(usuarioAtualizado.toJson());
+      return true;
+    } on DioException catch (error) {
+      _errorMessage = _mensagemErro(
+        error,
+        'Não foi possível salvar as informações.',
+      );
+      return false;
+    } catch (_) {
+      _errorMessage = 'Erro inesperado ao atualizar o perfil.';
+      return false;
+    } finally {
+      _isSavingProfile = false;
+      notifyListeners();
+    }
   }
 
   Future<void> logout() async {
@@ -151,5 +194,24 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
 
     notifyListeners();
+  }
+
+  String _mensagemErro(DioException error, String padrao) {
+    final data = error.response?.data;
+
+    if (data is Map && data['error'] != null) {
+      return data['error'].toString();
+    }
+
+    if (data is Map && data['message'] != null) {
+      return data['message'].toString();
+    }
+
+    if (error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.connectionError) {
+      return 'Não foi possível conectar ao servidor.';
+    }
+
+    return padrao;
   }
 }

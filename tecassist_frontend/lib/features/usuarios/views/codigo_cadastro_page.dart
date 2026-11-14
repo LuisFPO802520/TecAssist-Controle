@@ -286,7 +286,11 @@ class _CodigoCadastroPageState extends State<CodigoCadastroPage> {
             offset: const Offset(0, 18),
             child: IconButton(
               onPressed: () {
-                context.go('/app/home');
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/app/home');
+                }
               },
               icon: const Icon(Icons.arrow_back, color: Colors.white),
             ),

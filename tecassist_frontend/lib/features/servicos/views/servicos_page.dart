@@ -324,7 +324,7 @@ class _ServicosPageState extends State<ServicosPage> {
 
                     final botaoNovo = ElevatedButton.icon(
                       onPressed: () {
-                        context.go('/servicos/novo');
+                        context.push('/servicos/novo');
                       },
                       icon: const Icon(Icons.add),
                       label: const Text('Novo serviço'),
@@ -390,10 +390,10 @@ class _ServicosPageState extends State<ServicosPage> {
                         podeExcluir: auth.isAdmin,
                         corStatus: _corStatus(servico.status),
                         onDetalhes: () {
-                          context.go('/servicos/${servico.id}');
+                          context.push('/servicos/${servico.id}');
                         },
                         onEditar: () {
-                          context.go('/servicos/${servico.id}/editar');
+                          context.push('/servicos/${servico.id}/editar');
                         },
                         onAlterarStatus: () {
                           _alterarStatus(servico);

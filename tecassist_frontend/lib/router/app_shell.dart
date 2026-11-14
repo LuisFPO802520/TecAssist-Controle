@@ -29,6 +29,10 @@ class _AppShellState extends State<AppShell> {
 
   DateTime? _ultimoVoltar;
 
+  final List<int> _historicoPaginas = [];
+
+  bool _voltandoHistorico = false;
+
   final List<Widget> _pages = const [
     ClientesPage(),
     AgendamentosPage(),
@@ -51,6 +55,10 @@ class _AppShellState extends State<AppShell> {
 
     if (oldWidget.initialIndex != widget.initialIndex) {
       _currentIndex = widget.initialIndex;
+
+      _historicoPaginas.clear();
+      _voltandoHistorico = false;
+      _ultimoVoltar = null;
 
       if (_pageController.hasClients) {
         _pageController.jumpToPage(widget.initialIndex);
@@ -92,6 +100,16 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _paginaAlterada(int index) {
+    final paginaAnterior = _currentIndex;
+
+    if (_voltandoHistorico) {
+      _voltandoHistorico = false;
+    } else if (index == 0) {
+      _historicoPaginas.clear();
+    } else if (paginaAnterior != index) {
+      _historicoPaginas.add(paginaAnterior);
+    }
+
     setState(() {
       _currentIndex = index;
     });
@@ -102,13 +120,27 @@ class _AppShellState extends State<AppShell> {
   Future<void> _botaoVoltar() async {
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       _scaffoldKey.currentState?.closeDrawer();
-
       _ultimoVoltar = null;
+      return;
+    }
+
+    if (_historicoPaginas.isNotEmpty) {
+      final paginaAnterior = _historicoPaginas.removeLast();
+
+      _voltandoHistorico = true;
+      _ultimoVoltar = null;
+
+      await _pageController.animateToPage(
+        paginaAnterior,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeInOut,
+      );
 
       return;
     }
 
     if (_currentIndex != 0) {
+      _voltandoHistorico = true;
       _ultimoVoltar = null;
 
       await _pageController.animateToPage(
@@ -119,15 +151,14 @@ class _AppShellState extends State<AppShell> {
 
       return;
     }
+
     final agora = DateTime.now();
 
     if (_ultimoVoltar == null ||
         agora.difference(_ultimoVoltar!) > const Duration(seconds: 2)) {
       _ultimoVoltar = agora;
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -146,18 +177,6 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    /*
-     * Aumenta a área de abertura do Drawer.
-     *
-     * Em um celular de aproximadamente
-     * 400px de largura teremos cerca de
-     * 110px disponíveis para iniciar o gesto.
-     *
-     * Isso permite começar o movimento
-     * um pouco mais para dentro da tela,
-     * evitando disputar diretamente com
-     * o gesto de voltar do Android.
-     */
     final larguraTela = MediaQuery.sizeOf(context).width;
 
     final larguraGestoDrawer = (larguraTela * 0.28)
@@ -180,16 +199,12 @@ class _AppShellState extends State<AppShell> {
 
         backgroundColor: AppColors.background,
 
-        drawer: _currentIndex == 0 ? const DashboardDrawer() : null,
+        drawer: _currentIndex == 0
+            ? DashboardDrawer(onNavigatePage: _mudarPagina)
+            : null,
 
         drawerEnableOpenDragGesture: _currentIndex == 0,
 
-        /*
-         * Antes estava em 45.
-         *
-         * Agora fica entre 90 e 130,
-         * dependendo da largura da tela.
-         */
         drawerEdgeDragWidth: larguraGestoDrawer,
 
         body: ColoredBox(

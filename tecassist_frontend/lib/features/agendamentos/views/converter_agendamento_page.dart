@@ -140,7 +140,11 @@ class _ConverterAgendamentoPageState extends State<ConverterAgendamentoPage> {
             offset: const Offset(0, 18),
             child: IconButton(
               onPressed: () {
-                context.go('/app/agenda');
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/app/agenda');
+                }
               },
               icon: const Icon(Icons.arrow_back, color: Colors.white),
             ),
@@ -311,17 +315,21 @@ class _ConverterAgendamentoPageState extends State<ConverterAgendamentoPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
-          const Row(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.event_available_outlined, color: AppColors.primary),
-
-              SizedBox(width: 8),
-
-              Text(
-                'Agendamento selecionado',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+              const Icon(
+                Icons.event_available_outlined,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Agendamento selecionado',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ],

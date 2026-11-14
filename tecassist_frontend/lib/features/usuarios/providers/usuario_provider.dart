@@ -107,6 +107,8 @@ class UsuarioProvider extends ChangeNotifier {
     required String tipo,
     String? telefone,
     String? senha,
+    String? fotoBase64,
+    String? fotoMimeType,
   }) async {
     _isSaving = true;
     _errorMessage = null;
@@ -121,6 +123,8 @@ class UsuarioProvider extends ChangeNotifier {
         tipo: tipo,
         telefone: telefone,
         senha: senha,
+        fotoBase64: fotoBase64,
+        fotoMimeType: fotoMimeType,
       );
 
       await carregarUsuarios();

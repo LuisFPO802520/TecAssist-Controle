@@ -1,3 +1,4 @@
+const prisma = require("../config/prisma");
 const agendamentoRepository = require("../repositories/agendamentoRepository");
 const clienteRepository = require("../repositories/clienteRepository");
 

@@ -111,17 +111,36 @@ async function converterAgendamento(req, res) {
 }
 
 async function adicionarPeca(req, res) {
-
     try {
-        const resultado =await servicoService.adicionarPeca(
+        const peca = await servicoService.adicionarPeca(
             req.params.id,
-            req.body
+            req.body.estoqueId,
+            req.body.quantidade
         );
 
-        res.status(201).json(resultado);
-
+        return res.status(201).json({
+            message: "Peça adicionada ao serviço.",
+            peca,
+        });
     } catch (error) {
-        res.status(400).json({error: error.message});
+        return res.status(error.statusCode || 500).json({
+            error: error.message || "Erro ao adicionar peça.",
+        });
+    }
+}
+
+async function removerPeca(req, res) {
+    try {
+        const resultado = await servicoService.removerPeca(
+            req.params.id,
+            req.params.pecaId
+        );
+
+        return res.status(200).json(resultado);
+    } catch (error) {
+        return res.status(error.statusCode || 500).json({
+            error: error.message || "Erro ao remover peça.",
+        });
     }
 
 }
@@ -134,5 +153,6 @@ module.exports = {
     remove,
     atualizarStatus,
     converterAgendamento,
-    adicionarPeca
+    adicionarPeca,
+    removerPeca
 };
